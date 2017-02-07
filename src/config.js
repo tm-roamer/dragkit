@@ -14,8 +14,7 @@ var THROTTLE_TIME = 14,                              // 节流函数的间隔时
     DK_PLACEHOLDER_ITEM = 'dk-placeholder-item',     // 拖拽节点的占位符
     DK_ITEM_CONTENT = 'dk-item-content',             // 拖拽节点的展示内容区div的classname
     DK_ITEM_PROMPT_TEXT = 'dk-item-prompt-text',     // 占位的提示文字
-    DK_DELETE_ITEM_ICO = 'dk-delete-item-ico',       // 节点悬停显示的删除图标classname
-    PLACEHOLDER = 'placeholder'                      // 占位符
+    DK_DELETE_ITEM_ICO = 'dk-delete-item-ico'        // 节点悬停显示的删除图标classname
 
 // 默认设置
 var f = function () {

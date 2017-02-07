@@ -222,12 +222,7 @@ var dragdrop = {
         // 删除被覆盖节点
         this.dragkit.remove(this.dragCoveredNode);
         // 添加覆盖节点
-        this.dragkit.add(this.dragNode, this.dragElement);
-        // 插入DOM
-        this.dragElement.setAttribute(DK_ID, this.dragNode.id);
-        this.dragkit.container.appendChild(this.dragElement);
-        // 添加删除图标
-        view.appendDelIco(this.dragElement, this.dragNode.id);
+        this.dragkit.add(this.dragNode);
         // 清理样式(替换拖拽ClassName)
         this.setDragElementStyle();
         // 重新布局
@@ -251,11 +246,6 @@ var dragdrop = {
         var dragkit = this.dragkit;
         // 发生碰撞, 且容器节点数满了(当id=undefined也就是容器满了)
         if ((this.isDragAddNodeHit && this.dragNode.id)) {
-            // 插入DOM
-            this.dragElement.setAttribute(DK_ID, this.dragNode.id);
-            dragkit.container.appendChild(this.dragElement);
-            // 添加删除图标
-            view.appendDelIco(this.dragElement, this.dragNode.id);
             // 清理样式(替换拖拽ClassName)
             this.setDragElementStyle();
         } else {
@@ -303,7 +293,7 @@ var dragdrop = {
         var id = this.dragNode.id;
         if (id) {
             (dragkit || this.dragkit).elements[id].classList.remove(DK_PLACEHOLDER_ITEM);
-            document.body.removeChild(this.dragElement);
+            view.remove(document.body, '', DK_GRAG_DROP_ITEM);
         }
     },
     setCoverElementStyle: function (coveredNode, elements) {
