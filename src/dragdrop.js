@@ -23,16 +23,19 @@ var dragdrop = {
         }
     },
     dragStartMoveNode: function (ele, dragkit, event) {
-        // 取得当前拖拽节点
-        var node = utils.clone(dragkit.query(ele.getAttribute(DK_ID)));
-        if (node) {
-            this.dragNode = node;
-            this.dragElement = ele;
+        // 取得当前拖拽节点id
+        var id = ele.getAttribute(DK_ID);
+        if (id) {
+            // 被选中的节点
+            dragkit.elements[id].classList.add(DK_PLACEHOLDER_ITEM);
+            // 复制节点数据
+            this.dragNode = utils.clone(dragkit.query(id));
+            // 复制节点dom
+            this.dragElement = dragkit.elements[id].cloneNode(true);
             this.dragElement.className = DK_ITEM + ' ' + DK_GRAG_DROP_ITEM;
-            // 移动拖拽节点
+            // 移动复制节点
             this.moveDragElement(event);
-            // 新增占位符
-            dragkit.addPlaceHolder(node);
+            document.body.appendChild(this.dragElement);
         }
     },
     dragStartCrossMoveNode: function (event) {
@@ -81,13 +84,15 @@ var dragdrop = {
             this.dragCrossMoveNode(containerHit.isContainerHit, event);
         }
         else {
+            // 特殊处理: 容器离得近的时候, 拖动过快, 容易切换容器, 导致切换了拖拽对象, 删除临时节点
+            this.removeTempNode(this.startDragkit, this.dragkit, this.dragNode);
+
             if (containerHit.isContainerHit) {
                 this.dragMoveNode(event);
             } else {
                 this.dragDeleteNode(event);
             }
-            // 特殊处理: 容器离得近的时候, 拖动过快, 容易切换容器, 导致切换了拖拽对象, 删除临时节点
-            this.removeTempNode(this.startDragkit, this.dragkit, this.dragNode);
+
         }
     },
     dragMoveNode: function (event) {
@@ -115,7 +120,6 @@ var dragdrop = {
             if (!isCross && this.prevDragkit && this.prevDragkit !== dragkit) {
                 this.isDragAddData = undefined;
                 this.prevDragkit.remove(this.dragNode);
-                this.prevDragkit.removePlaceHolder(this.dragNode);
                 this.setCoverElementStyle(undefined, this.prevDragkit.elements);
                 this.prevDragkit.layout();
             }
@@ -124,14 +128,13 @@ var dragdrop = {
                 if (this.isDragAddData === undefined) {
                     // 添加节点 this.isDragAddData === this.dragNode
                     this.isDragAddData = dragkit.add(this.dragNode, this.dragElement);
-                    // 添加占位符
-                    dragkit.addPlaceHolder(this.isDragAddData);
+                    dragkit.elements[this.dragNode.id].classList.add(DK_PLACEHOLDER_ITEM);
                 }
             }
             // 容器超量的情况会执行覆盖
             else {
                 // 允许覆盖, 并且无法再添加节点时
-                if (dragkit.opt.isCoverNode && !this.isDragAddData) {
+                if (dragkit.opt.isCoverNode && !this.isDragAddData && !dragkit.query(this.dragNode.id)) {
                     var containerTop = view.getOffset(dragkit.container).top;
                     var y = this.dragNodeCoord.y - containerTop;
                     var nodeHit = utils.checkNodeHit(dragkit.data, {y: y}, dragkit.opt);
@@ -145,12 +148,11 @@ var dragdrop = {
         } else {
             this.isDragAddData = undefined;
             dragkit.remove(this.dragNode);
-            dragkit.removePlaceHolder(this.dragNode);
             // 覆盖情况,清除样式
             this.setCoverElementStyle(undefined);
         }
         // 碰撞仅在边界处, 可以无数次在容器外或容器内移动, 故需要每次都要应用布局
-        this.applyLayout(this.isDragAddData);
+        this.applyLayout(this.isDragAddData || this.dragNode);
     },
     dragDeleteNode: function (event) {
         this.isDragDeleteNode = true;
@@ -196,17 +198,13 @@ var dragdrop = {
         this.dragNodeCoord = undefined;
     },
     dragEndMoveNode: function (event, dragkit) {
-        dragkit = dragkit || this.dragkit;
-        // 移除占位符
-        dragkit.removePlaceHolder(this.dragNode);
         // 清理样式(替换拖拽ClassName)
-        this.setDragElementStyle(dragkit);
+        this.setDragElementStyle();
     },
     dragEndCrossMoveNode: function (event) {
         // 判断是否跨域容器
         if (this.startDragkit !== this.dragkit) {
             // 删除之前容器的节点
-            this.startDragkit.removePlaceHolder(this.dragNode);
             this.startDragkit.remove(this.dragNode);
             this.startDragkit.layout();
             // 节点添加到现在容器
@@ -237,7 +235,6 @@ var dragdrop = {
         // 判断是否跨域容器
         if (this.startDragkit && this.startDragkit !== this.dragkit) {
             // 删除之前容器的节点
-            this.startDragkit.removePlaceHolder(this.dragNode);
             this.startDragkit.remove(this.dragNode);
             this.startDragkit.layout();
             this.startDragkit.container.classList.remove(DK_START_CONTAINER);
@@ -254,7 +251,6 @@ var dragdrop = {
         var dragkit = this.dragkit;
         // 发生碰撞, 且容器节点数满了(当id=undefined也就是容器满了)
         if ((this.isDragAddNodeHit && this.dragNode.id)) {
-            dragkit.removePlaceHolder(this.dragNode);
             // 插入DOM
             this.dragElement.setAttribute(DK_ID, this.dragNode.id);
             dragkit.container.appendChild(this.dragElement);
@@ -271,28 +267,19 @@ var dragdrop = {
     },
     dragEndDeleteNode: function (event) {
         // 如果拖出容器删除节点
-        this.dragkit.removePlaceHolder(this.dragNode);
+        document.body.removeChild(this.dragElement);
         this.dragkit.remove(this.dragNode);
         this.dragkit.layout();
         this.isDragDeleteNode = undefined;
     },
-    // // 拖拽进入容器
-    // dragEnterContainer: function(container, event) {
-    //     console.log('enter');
-    //     if (this.isDrag) {
-    //         this.isDragDeleteNode = false;
-    //         this.dragElement.classList.remove(DK_DELETE_ITEM);
-    //         this.applyLayout(this.dragNode);
-    //     }
-    // },
-    // // 拖拽离开容器
-    // dragLeaveContainer: function(container, event) {
-    //     console.log('leave');
-    //     if (this.isDrag) {
-    //         this.isDragDeleteNode = true;
-    //         this.dragElement.classList.add(DK_DELETE_ITEM)
-    //     }
-    // },
+    // 拖拽进入容器
+    dragEnterContainer: function() {
+        console.log('enter');
+    },
+    // 拖拽离开容器
+    dragLeaveContainer: function() {
+        console.log('leave');
+    },
     // 辅助方法
     moveDragElement: function (event) {
         var x = event.pageX - this.offset.x;
@@ -313,29 +300,23 @@ var dragdrop = {
         }
     },
     setDragElementStyle: function (dragkit) {
-        var dragkit = dragkit || this.dragkit;
-        // 确认拖拽添加到容器内, 修改替换样式(替换拖拽ClassName)
-        var node = this.dragkit.query(this.dragNode.id);
-        if (node) {
-            var styleTop = view.setStyleTop(node && node.innerY);
-            this.dragElement.style.cssText = styleTop + ';position:absolute;';
-            var self = this;
-            setTimeout(function () {
-                self.dragElement.className = DK_ITEM + ' ' + DK_ANIMATE_ITEM;
-                self.dragElement.style.cssText = styleTop;
-                self.dragElement = null;
-            }, 0);
+        var id = this.dragNode.id;
+        if (id) {
+            (dragkit || this.dragkit).elements[id].classList.remove(DK_PLACEHOLDER_ITEM);
+            document.body.removeChild(this.dragElement);
         }
     },
     setCoverElementStyle: function (coveredNode, elements) {
         elements = elements || this.dragkit.elements;
-        elements.forEach(function (ele) {
-            if (coveredNode && ele.getAttribute(DK_ID) === coveredNode.id) {
-                ele.classList.add(DK_COVER_ITEM)
-            } else {
-                ele.classList.remove(DK_COVER_ITEM)
+        for(var id in elements) {
+            if (elements.hasOwnProperty(id)) {
+                if (coveredNode && elements[id].getAttribute(DK_ID) === coveredNode.id) {
+                    elements[id].classList.add(DK_COVER_ITEM)
+                } else {
+                    elements[id].classList.remove(DK_COVER_ITEM)
+                }
             }
-        });
+        }
     },
     removeTempNode: function(startDragkit, currentDragkit, node) {
         var arr = cache.arr;
@@ -344,7 +325,6 @@ var dragdrop = {
             if (dragkit !== startDragkit && dragkit !== currentDragkit && dragkit.query(node.id)) {
                 this.isDragAddData = undefined;
                 dragkit.remove(node);
-                dragkit.removePlaceHolder(node);
                 dragkit.layout();
             }
         }

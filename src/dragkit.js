@@ -1,8 +1,6 @@
 // 拖拽对象
 function DragKit(options, container, originData, number) {
     this.init(options, container, originData, number);
-    // handleEvent.unbind(this.container);
-    // handleEvent.bind(this.container);
 }
 
 // 拖拽对象原型
@@ -36,12 +34,13 @@ DragKit.prototype = {
         return this.data;
     },
     layout: function (dragNode, innerY) {
-        dragNode && (this.query(dragNode.id).innerY = innerY);
+        var node = (dragNode && this.query(dragNode.id));
+        node && (node.innerY = innerY);
         // 排序
         this.data.sort(function (n1, n2) {
             return n1.innerY - n2.innerY
         });
-        // 重置数据
+        // 重置
         this.resetData();
         // 重绘
         view.render(this.opt, this.data, this.elements, this.container);
@@ -52,12 +51,14 @@ DragKit.prototype = {
             return node.id === id
         })[0];
     },
-    add: function (node, ele) {
+    add: function (node) {
         var opt = this.opt;
         node.id = node.id || this.number + '-' + (++this.autoIncrement);
-        this.data.push(node);
-        this.elements.push(ele);
         node.innerY = node.innerY !== undefined ? node.innerY : this.data.length * (opt.nodeH + opt.padding);
+        this.data.push(node);
+        var ele = view.create(node);
+        this.elements[node.id] = ele;
+        this.container.appendChild(ele);
         return node;
     },
     remove: function (node) {
@@ -65,28 +66,11 @@ DragKit.prototype = {
         this.data.forEach(function (n, idx, arr) {
             n.id === node.id && arr.splice(idx, 1);
         });
-        this.elements.forEach(function (ele, idx, arr) {
-            var id = ele.getAttribute(DK_ID);
-            if (id === "" || id === node.id) {
-                arr.splice(idx, 1);
-            }
-        });
+        delete this.elements[node.id];
         view.remove(this.container, node.id);
     },
-    addPlaceHolder: function (node) {
-        if (!node) return;
-        var placeholder = utils.clone(node);
-        placeholder.type = PLACEHOLDER;
-        var element = view.create(placeholder);
-        this.elements.push(element);
-        this.container.appendChild(element);
-    },
-    removePlaceHolder: function (node) {
-        if (!node) return;
-        this.elements.forEach(function (ele, idx, arr) {
-            ele.classList.contains(DK_PLACEHOLDER_ITEM) && arr.splice(idx, 1);
-        });
-        view.remove(this.container, node.id, DK_PLACEHOLDER_ITEM);
+    cover: function(oldNode, newNode) {
+        // 覆盖
     },
     showPromptText(isShow, isDrag) {
         this.opt.isShowPromptText = (isShow && isDrag) || false;

@@ -20,14 +20,6 @@ var handleEvent = {
         document.removeEventListener('click', this.click, true);
         this.isbind = false;
     },
-    // bind: function(container) {
-    //     container.addEventListener('mouseenter', this.mouseEnter, false);
-    //     container.addEventListener('mouseleave', this.mouseLeave, false);
-    // },
-    // unbind: function(container) {
-    //     container.addEventListener('mouseenter', this.mouseEnter, false);
-    //     container.addEventListener('mouseleave', this.mouseLeave, false);
-    // },
     mouseDown: function (event) {
         // 点击删除图标, 删除节点
         if (event.target.classList.contains(DK_DELETE_ITEM_ICO)) {
@@ -60,12 +52,6 @@ var handleEvent = {
             dragdrop.dragEnd(event);
         }
     },
-    // mouseEnter: function(event) {
-    //     dragdrop.dragEnterContainer(event.target. event);
-    // },
-    // mouseLeave: function(event) {
-    //     dragdrop.dragLeaveContainer(event.target. event);
-    // },
     click: function (event) {
         if (this.distance) {
             // 比较拖拽距离, 判断是否拖拽, 如果是拖拽则阻止冒泡. 不触发点击事件

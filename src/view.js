@@ -27,12 +27,12 @@ var view = {
     },
     init: function (data, opt, container) {
         var self = this,
-            elements = [],
+            elements = {},
             fragment = document.createDocumentFragment();
         if (data && data.length > 0) {
             data.forEach(function (node, idx) {
                 var ele = self.create(node);
-                elements.push(ele);
+                elements[node.id] = ele;
                 fragment.appendChild(ele);
             });
             this.setContainerParam(opt, data, container);
@@ -47,13 +47,10 @@ var view = {
         content.innerHTML = node.text;
         ele.appendChild(content);
         ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
-        node.type == PLACEHOLDER && ele.classList.add(DK_PLACEHOLDER_ITEM);
         ele.setAttribute(DK_ID, node.id || '');
         ele.style.cssText = this.setStyleTop(node.innerY);
-        // 正常容器内显示的节点悬停时需要显示删除图标
-        if (node.type !== PLACEHOLDER && node.id !== undefined) {
-            this.appendDelIco(ele, node.id);
-        }
+        // 节点悬停时需要显示删除图标
+        node.id && this.appendDelIco(ele, node.id);
         return ele;
     },
     remove: function (container, id, className) {
@@ -62,13 +59,15 @@ var view = {
         delElement && container.removeChild(delElement);
     },
     render: function (opt, data, elements, container) {
-        for (var i = 0; i < elements.length; i++) {
-            var ele = elements[i];
-            if (!ele.classList.contains(DK_GRAG_DROP_ITEM)) {
-                var node = data.filter(function (n) {
-                    return n.id === ele.getAttribute(DK_ID)
-                })[0];
-                ele.style.cssText = this.setStyleTop(node.innerY);
+        for(var id in elements) {
+            if(elements.hasOwnProperty(id)) {
+                var ele = elements[id];
+                if (!ele.classList.contains(DK_GRAG_DROP_ITEM)) {
+                    var node = data.filter(function (n) {
+                        return n.id === ele.getAttribute(DK_ID)
+                    })[0];
+                    ele.style.cssText = this.setStyleTop(node.innerY);
+                }
             }
         }
         this.setContainerParam(opt, data, container);
