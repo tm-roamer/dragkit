@@ -7,7 +7,7 @@
     user-select:none;
     transition: height 0.15s;
 }
-.dk-container-start {
+.dk-start-container {
     z-index: 2;
 }
 .dk-item {
@@ -20,14 +20,14 @@
     border-radius: 15px;
     color: #fff;
 }
-.dk-item-delete-ico {
+.dk-delete-item-ico {
     display: none;
 }
-.dk-container .dk-item.dk-item-delete:hover .dk-item-delete-ico,
-.dk-container .dk-item.dk-item-dragdrop:hover .dk-item-delete-ico{
+.dk-container .dk-item.dk-delete-item:hover .dk-delete-item-ico,
+.dk-container .dk-item.dk-dragdrop-item:hover .dk-delete-item-ico{
     display: none;
 }
-.dk-container .dk-item:hover .dk-item-delete-ico {
+.dk-container .dk-item:hover .dk-delete-item-ico {
     display: block;
     position: absolute;
     top: -6px;
@@ -41,19 +41,19 @@
     line-height: 17px;
     border: 1px solid #fff;
 }
-.dk-container .dk-item:hover .dk-item-delete-ico:hover {
+.dk-container .dk-item:hover .dk-delete-item-ico:hover {
     background-color: #FF6666;
     cursor: pointer;
 }
-.dk-item-dragdrop {
+.dk-dragdrop-item {
     box-shadow: 1px 1px 1px rgba(144,142,142,0.6);
     opacity: 0.8;
     position:fixed;
     z-index:1000;
 }
-.dk-item-add {}
-.dk-item-delete {}
-.dk-item-delete::before {
+.dk-add-item {}
+.dk-delete-item {}
+.dk-delete-item::before {
     content: "\2715";
     position: absolute;
     top: -6px;
@@ -67,7 +67,7 @@
     line-height: 17px;
     border: 1px solid #fff;
 }
-.dk-item-placeholder {
+.dk-placeholder-item {
     background-color: #6EC5FD;
     color: transparent;
     opacity: 0;
@@ -84,13 +84,13 @@
     z-index: 9;
     width: 100%;
 }
-.dk-item-animate {
+.dk-animate-item {
     -webkit-transform: translate3d(0,0,0);
     -webkit-backface-visibility: hidden;
     -webkit-transform-style: preserve-3d;
     transition: transform 0.15s, top 0.15s;
 }
-.dk-item-cover {
+.dk-cover-item {
     background-color: #6EC5FD;
     transform: scale(1.08);
 }
