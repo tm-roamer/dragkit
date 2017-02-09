@@ -55,7 +55,8 @@ var view = {
     },
     remove: function (container, id, className) {
         className = className || DK_ITEM;
-        var delElement = container.querySelector('div.' + className + '[' + DK_ID + '="' + id + '"]');
+        var attrSelector = id ? '[' + DK_ID + '="' + (id || '') + '"]' : '';
+        var delElement = container.querySelector('div.' + className + attrSelector);
         delElement && container.removeChild(delElement);
     },
     render: function (opt, data, elements, container) {

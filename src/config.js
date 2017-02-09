@@ -24,6 +24,8 @@ var f = function () {
         maxNodeNum: 4,                                   // 容器最多节点数量
         nodeH: 24,                                       // 单个节点的宽高
         isCoverNode: true,                               // 是否可以覆盖节点
+        containerInHitScale: 0.6,                        // 进入容器时碰撞重叠比例
+        containerOutHitScale: 0.6,                       // 离开容器时碰撞重叠比例
         coverNodeScale: 0.7,                             // 节点覆盖重叠的比例值
         isShowPromptText: false,                         // 是否显示提示文字, 默认不显示
         padding: 5,                                      // 节点块之间的间距, 默认都为5px

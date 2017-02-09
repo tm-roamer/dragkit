@@ -15,6 +15,9 @@ DragKit.prototype = {
         this.data = this.setData(originData);           // 渲染数据
         this.elements = view.init(this.data, this.opt, this.container); // 缓存的节点DOM
     },
+    destroy: function() {
+        // 注销
+    },
     setData: function (originData) {
         var data = [], opt = this.opt, self = this;
         originData.forEach(function (node, idx) {
@@ -68,6 +71,9 @@ DragKit.prototype = {
         });
         delete this.elements[node.id];
         view.remove(this.container, node.id);
+    },
+    update: function(oldNode, newNode) {
+        // 更新
     },
     cover: function(oldNode, newNode) {
         // 覆盖
