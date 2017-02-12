@@ -65,7 +65,7 @@ DragKit.prototype = {
         return node;
     },
     remove: function (node) {
-        if (!node) return;
+        if (!(node && node.id)) return;
         this.data.forEach(function (n, idx, arr) {
             n.id === node.id && arr.splice(idx, 1);
         });
@@ -73,10 +73,13 @@ DragKit.prototype = {
         view.remove(this.container, node.id);
     },
     update: function(oldNode, newNode) {
-        // 更新
     },
+    // 覆盖
     cover: function(oldNode, newNode) {
-        // 覆盖
+        newNode.innerY = oldNode.innerY; // 同步位置
+        this.remove(oldNode);
+        this.add(newNode);
+        this.layout();
     },
     showPromptText(isShow, isDrag) {
         this.opt.isShowPromptText = (isShow && isDrag) || false;
