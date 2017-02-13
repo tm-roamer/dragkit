@@ -15,6 +15,20 @@
 })(window, function () {
     'use strict';
 
-    // 插入
+    // 配置对象 config
+
+    // 工具对象 utils
+
+    // 碰撞检测 collision
+
+    // 缓存对象 cache
+
+    // 视图对象 view
+
+    // 监听对象 handleEvent
+
+    // 拖拽对象 dragdrop 
+
+    // api接口 dragkit
 
 });
