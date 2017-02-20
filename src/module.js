@@ -12,23 +12,24 @@
     } else {
         parent.dragkit = fun();
     }
-})(window, function () {
+})(window, function (dk) {
     'use strict';
 
-    // 配置对象 config
+    // 配置对象 @@include('./config.js')
 
-    // 工具对象 utils
+    // 工具对象 @@include('./utils.js')
 
-    // 碰撞检测 collision
+    // 碰撞检测 @@include('./collision.js')
 
-    // 缓存对象 cache
+    // 缓存对象 @@include('./cache.js')
 
-    // 视图对象 view
+    // 视图对象 @@include('./view.js')
 
-    // 监听对象 handleEvent
+    // 监听对象 @@include('./handleEvent.js')
 
-    // 拖拽对象 dragdrop 
+    // 拖拽对象 @@include('./dragdrop.js')
 
-    // api接口 dragkit
+    // api接口 @@include('./dragkit.js')
 
+    return dk;
 });

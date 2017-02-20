@@ -1,0 +1,31 @@
+{
+  "name": "dragkit",
+  "version": "1.1.0",
+  "description": "dragkit.js is a plugin for dragdrop 一个拖拽插件",
+  "main": "index.js",
+  "directories": {
+    "example": "example"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-esformatter": "^6.1.0",
+    "gulp-file-include": "^1.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^2.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./node_modules/.bin/gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tm-roamer/dragkit.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tm-roamer/dragkit/issues"
+  },
+  "homepage": "https://github.com/tm-roamer/dragkit#readme"
+}

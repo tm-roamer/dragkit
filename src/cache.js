@@ -1,3 +1,4 @@
+
 // 拖拽对象的缓存对象
 var cache = {
     init: function () {

@@ -1,3 +1,4 @@
+
 // 展示对象, 操作DOM
 var view = {
     setContainerParam: function (opt, data, container) {

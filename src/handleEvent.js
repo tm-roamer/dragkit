@@ -1,3 +1,4 @@
+
 // 事件处理对象
 var handleEvent = {
     init: function (isbind) {

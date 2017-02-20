@@ -1,3 +1,4 @@
+
 // 拖拽的工具对象
 var dragdrop = {
     state: {},
@@ -150,7 +151,7 @@ var dragdrop = {
         // 当鼠标位置转换成容器内排版坐标
         dragkit.layout(node, this.dragNodeCoord.y - containerTop);
     },
-    setCoverNodeStyle(dragkit, coveredNode) {
+    setCoverNodeStyle: function (dragkit, coveredNode) {
         var elements = dragkit.elements;
         for (var id in elements) {
             if (elements.hasOwnProperty(id)) {
@@ -202,5 +203,5 @@ var dragdrop = {
         delete this.offsetX;
         delete this.offsetY;
         delete this.dragNodeCoord;
-    },
+    }
 };

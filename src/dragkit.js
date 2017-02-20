@@ -1,3 +1,4 @@
+
 // 拖拽对象
 function DragKit(options, container, originData, number) {
     this.init(options, container, originData, number);
@@ -81,7 +82,7 @@ DragKit.prototype = {
         this.add(newNode);
         this.layout();
     },
-    showPromptText(isShow, isDrag) {
+    showPromptText: function(isShow, isDrag) {
         this.opt.isShowPromptText = (isShow && isDrag) || false;
         view.setContainerParam(this.opt, this.data, this.container);
     }
@@ -108,8 +109,8 @@ function destroy(dragkit) {
     dragkit = null;
 }
 
-var dragkit = {
-    version: "1.0.0",
+dk = {
+    version: "1.1.0",
     instance: instance,
     destroy: destroy
 };

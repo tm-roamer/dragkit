@@ -1,3 +1,4 @@
+
 // 常量
 var THROTTLE_TIME = 14,                              // 节流函数的间隔时间单位ms, FPS = 1000 / THROTTLE_TIME
     DK_CONTAINER = 'dk-container',                   // 拖拽容器classname
@@ -36,3 +37,4 @@ var f = function () {
         onLoad: f,                                       // 回调函数, 渲染触发
         onClick: f,                                      // 回调函数, 点击事件
     };
+
