@@ -19,6 +19,7 @@
     // 常量
     var THROTTLE_TIME = 14, // 节流函数的间隔时间单位ms, FPS = 1000 / THROTTLE_TIME
         DK_CONTAINER = 'dk-container', // 拖拽容器classname
+        // DK_LAYOUT = 'dk-layout',                         // 拖拽容器的布局classname
         DK_START_CONTAINER = 'dk-start-container', // 跨容器拖拽时开始容器的classname
         DK_ID = 'data-dk-id', // 拖拽节点的数据标识id
         DK_NODE_INFO = 'data-dk-node-info', // 待新增拖拽节点携带的数据
@@ -43,8 +44,7 @@
             maxNodeNum: 4, // 容器最多节点数量
             nodeH: 24, // 单个节点的宽高
             isCoverNode: true, // 是否可以覆盖节点
-            containerInHitScale: 0.6, // 进入容器时碰撞重叠比例
-            containerOutHitScale: 0.6, // 离开容器时碰撞重叠比例
+            hitScale: 0.6, // 碰撞的面积重叠比例
             coverNodeScale: 0.7, // 节点覆盖重叠的比例值
             isShowPromptText: false, // 是否显示提示文字, 默认不显示
             padding: 5, // 节点块之间的间距, 默认都为5px
@@ -53,10 +53,8 @@
             onCoverNode: f, // 回调函数, 覆盖节点
             onAddNode: f, // 回调函数, 添加节点
             onDeleteNode: f, // 回调函数, 删除节点
-            onLoad: f, // 回调函数, 渲染触发
+            onLoad: f // 回调函数, 渲染触发
         };
-
-
 
     // 工具对象 
     // 工具类
@@ -89,75 +87,6 @@
             };
             this.throttle(now);
         },
-        // 检测矩形碰撞(重叠)
-        checkHit: function(container, node, state, scale) {
-
-            if ((container.x + container.w > node.x) && (container.x < node.x + node.w)) {
-                if ((container.y + container.h > node.y) && (container.y < node.y + node.h)) {
-
-                    // if (container.x + container.w < node.x + node.w) {
-                    //
-                    // }
-                    // else if (container.x + container.w < node.x + node.w) {
-                    //
-                    // }
-
-                    return true;
-                }
-            }
-            return false;
-        },
-        // 进行所有的容器的矩形碰撞(重叠)
-        checkContainerHit: function(offsetX, offsetY, dragElement, state, event) {
-            // 拖拽节点的当前坐标
-            var node = {
-                x: event.pageX - offsetX,
-                y: event.pageY - offsetY,
-                w: dragElement.clientWidth,
-                h: dragElement.clientHeight
-            };
-            var arr = cache.arr;
-            for (var i = 0; i < arr.length; i++) {
-                var dragkit = arr[i];
-                // 容器坐标
-                var containerOffset = view.getOffset(dragkit.container);
-                var containerCoord = {
-                    x: containerOffset.left,
-                    y: containerOffset.top,
-                    w: containerOffset.width,
-                    h: containerOffset.height
-                };
-                if (this.checkHit(containerCoord, node, state))
-                    return {
-                        isContainerHit: true,
-                        currentDragkit: dragkit,
-                        dragNodeCoord: node
-                    };
-            }
-            return {
-                isContainerHit: false,
-                dragNodeCoord: node
-            };
-        },
-        // 进行容器内所有节点的碰撞检测(点与线段的碰撞)
-        checkNodeHit: function(arr, node, opt) {
-            if (arr && arr.length > 0) {
-                for (var i = 0; i < arr.length; i++) {
-                    var n = arr[i];
-                    var scale = parseInt(opt.nodeH * opt.coverNodeScale);
-                    if ((n.innerY < node.y) && (node.y < n.innerY + scale)) {
-                        return {
-                            isNodeHit: true,
-                            coveredNode: n
-                        };
-                    }
-                }
-            }
-            return {
-                isNodeHit: false,
-                coveredNode: undefined
-            };
-        },
         getDom2Dragkit: function(dom) {
             // 获取容器
             var container = view.searchUp(dom, DK_CONTAINER);
@@ -169,8 +98,159 @@
     };
 
     // 碰撞检测 
+    // 碰撞检测对象
     var conllision = {
 
+        /**
+         * 检测矩形碰撞
+         * 矩形发生重叠, 并拖拽节点的重叠面积大于scale规定的比例才认定为碰撞
+         * @param container 容器
+         * @param node  拖拽节点
+         * @param inside 状态, true=里面, false=外面
+         * @param scale 比例, 碰撞重叠比例
+         * @return {boolean} 是否碰撞
+         */
+        checkHit: function(container, node, inside, scale) {
+            var n1 = {
+                    x: node.x,
+                    y: node.y,
+                    w: node.w,
+                    h: node.h,
+                    xw: node.x + node.w,
+                    yh: node.y + node.h,
+                    area: node.w * node.h
+                },
+                n2 = {
+                    x: container.x,
+                    y: container.y,
+                    w: container.w,
+                    h: container.h,
+                    xw: container.x + container.w,
+                    yh: container.y + container.h
+                },
+                isHit = false,
+                // 离开和进入的比例相对的
+                scale = inside ? 1 - scale : scale;
+            // 重叠
+            if (n2.xw > n1.x && n2.x < n1.xw) {
+                if (n2.yh > n1.y && n2.y < n1.yh) {
+                    // 左边接触
+                    if (n1.x < n2.x) {
+                        // 三种情况, 左上角重叠, 左下角重叠, 正常重叠
+                        var h = n1.h;
+                        if (n1.y < n2.y) {
+                            h = n1.yh - n2.y
+                        } else if (n2.xw < n1.xw) {
+                            h = n2.yh - n1.y;
+                        }
+                        isHit = (n1.xw - n2.x) * h / n1.area >= scale;
+                    // console.log('left', (n1.xw - n2.x) * n1.h / n1.area >= scale);
+                    }
+                    // 上边接触
+                    else if (n1.y < n2.y) {
+                        // 三种情况, 左上角重叠, 右上角重叠, 正常重叠
+                        var w = n1.w;
+                        if (n1.x < n2.x) {
+                            w = n1.xw - n2.x
+                        } else if (n2.xw < n1.xw) {
+                            w = n2.xw - n1.x;
+                        }
+                        isHit = (n1.yh - n2.y) * w / n1.area >= scale;
+                    // console.log('up', (n1.yh - n2.y) * n1.w / n1.area >= scale);
+                    }
+                    // 右边接触
+                    else if (n2.xw < n1.xw) {
+                        // 三种情况, 右上角重叠, 右下角重叠, 正常重叠
+                        var h = n1.h;
+                        if (n1.y < n2.y) {
+                            h = n1.yh - n2.y
+                        } else if (n2.xw < n1.xw) {
+                            h = n2.yh - n1.y;
+                        }
+                        isHit = (n2.xw - n1.x) * h / n1.area >= scale;
+                    // console.log('right', (n2.xw - n1.x) * n1.h / n1.area >= scale);
+                    }
+                    // 下边接触
+                    else if (n2.yh < n1.yh) {
+                        // 三种情况, 左下角重叠, 右下角重叠, 正常重叠
+                        var w = n1.w;
+                        if (n1.x < n2.x) {
+                            w = n1.xw - n2.x
+                        } else if (n2.xw < n1.xw) {
+                            w = n2.xw - n1.x;
+                        }
+                        isHit = (n2.yh - n1.y) * w / n1.area >= scale;
+                    // console.log('down', (n2.yh - n1.y) * n1.w, n1.h, (n2.yh - n1.y) * n1.w / n1.area >= scale);
+                    }
+                    // 包含
+                    else {
+                        isHit = true;
+                    }
+                }
+            }
+            return isHit;
+        },
+        // 进行所有的容器的矩形碰撞(重叠)
+        checkContainerHit: function(node, inside, scale) {
+            var arr = cache.arr;
+            for (var i = 0; i < arr.length; i++) {
+                var dragkit = arr[i];
+                // 容器坐标
+                var containerOffset = view.getOffset(dragkit.container);
+                var containerCoord = {
+                    x: containerOffset.left,
+                    y: containerOffset.top,
+                    w: containerOffset.width,
+                    h: containerOffset.height
+                };
+                if (this.checkHit(containerCoord, node, inside, dragkit.opt.hitScale))
+                    return {
+                        isContainerHit: true,
+                        currentDragkit: dragkit,
+                        dragNodeCoord: node
+                    };
+            }
+            return {
+                isContainerHit: false,
+                dragNodeCoord: node
+            };
+        },
+        // 进行容器内节点的碰撞检测(针对覆盖节点)
+        checkNodeHit: function(container, arr, elements, node, coverNodeScale) {
+
+            if (Array.isArray(arr)) {
+                // 容器坐标
+                var containerOffset = view.getOffset(container);
+                var n1 = {
+                    x: node.x - containerOffset.left,
+                    y: node.y - containerOffset.top,
+                    w: node.w,
+                    h: node.h
+                };
+                for (var i = 0; i < arr.length; i++) {
+                    var n = arr[i];
+                    var n2 = {
+                        x: 0,
+                        y: n.innerY,
+                        w: elements[n.id].clientWidth,
+                        h: elements[n.id].clientHeight
+                    };
+                    // 碰撞
+                    if (this.checkHit(n2, n1, undefined, coverNodeScale)) {
+                        console.log('----------');
+                        this.checkHit(n2, n1, undefined, coverNodeScale);
+                        return {
+                            isNodeHit: true,
+                            coveredNode: n
+                        };
+                    }
+                }
+            }
+            return {
+                isNodeHit: false,
+                coveredNode: undefined
+            };
+        }
     };
 
 
@@ -378,8 +458,8 @@
     var dragdrop = {
         state: {},
         init: function() {
-            this.dragNode = {};
-            this.dragElement = view.create(this.dragNode, DK_HIDE_ITEM);
+            this.dragNode = null;
+            this.dragElement = view.create({}, DK_HIDE_ITEM);
             document.body.appendChild(this.dragElement);
         },
         // 开始拖拽
@@ -439,7 +519,9 @@
             // 移动拖拽节点
             this.moveDragElement(event);
             // 拖拽节点与容器的碰撞检测
-            var hit = utils.checkContainerHit(this.offsetX, this.offsetY, this.dragElement, this.state, event);
+            // 拖拽节点的当前坐标
+            var node = this.getDragElementCoord(event);
+            var hit = conllision.checkContainerHit(node, this.state.inside);
             // @fix 临时
             this.dragNodeCoord = hit.dragNodeCoord;
             // 根据碰撞结果判断是否进入容器
@@ -485,11 +567,12 @@
                 && !this.state.isPlaceHolderNode
                 && (this.state.isDragAddNode || this.state.isDragCrossNode)) {
                 // 节点碰撞
-                var containerTop = view.getOffset(dragkit.container).top;
-                var y = this.dragNodeCoord.y - containerTop;
-                var nodeHit = utils.checkNodeHit(dragkit.data, {
-                    y: y
-                }, dragkit.opt);
+                // var containerTop = view.getOffset(dragkit.container).top;
+                // var y = this.dragNodeCoord.y - containerTop;
+                // 拖拽节点的当前坐标
+                var node = this.getDragElementCoord(event);
+                var nodeHit = conllision.checkNodeHit(dragkit.container,
+                    dragkit.data, dragkit.elements, node, dragkit.opt.coverNodeScale);
                 if (nodeHit.isNodeHit) {
                     this.state.isDragCoverNode = true;
                     this.dragCoveredNode = nodeHit.coveredNode;
@@ -536,6 +619,15 @@
                     }
                 }
             }
+        },
+        getDragElementCoord: function(event) {
+            // 拖拽节点的当前坐标
+            return {
+                x: event.pageX - this.offsetX,
+                y: event.pageY - this.offsetY,
+                w: this.dragElement.clientWidth,
+                h: this.dragElement.clientHeight
+            };
         },
         // 结束拖拽
         dragEnd: function(event) {
@@ -688,6 +780,7 @@
             // 初始化实例
             var index = cache.index();
             container.setAttribute(DK_ID, index);
+            // var layout = container.querySelector('.'+DK_LAYOUT);
             return cache.set(new DragKit(options, container, originData, index));
         }
     }

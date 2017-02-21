@@ -22,7 +22,6 @@
             width: 150px;
             position: absolute;
             background-color: #fff;
-            padding: 5px;
         }
 
         .test-add::after {
@@ -44,7 +43,6 @@
             width: 150px;
             position: absolute;
             background-color: #fff;
-            padding: 5px;
         }
 
         .test-b {
@@ -53,7 +51,6 @@
             left: 550px;
             top: 20px;
             background-color: #fff;
-            padding: 5px;
         }
 
         .test-c {
@@ -62,7 +59,6 @@
             left: 850px;
             top: 20px;
             background-color: #fff;
-            padding: 5px;
         }
     </style>
 </head>
@@ -103,9 +99,11 @@
 <div class="test-c">
     <!-- 外层容器 -->
     <div class="dk-container dk-container-c">
-        <!-- 提示文字 -->
-        <div class="dk-item-prompt-text">
-            Drag data fields here
+        <div class="dk-layout">
+            <!-- 提示文字 -->
+            <div class="dk-item-prompt-text">
+                Drag data fields here
+            </div>
         </div>
     </div>
 </div>
@@ -121,23 +119,23 @@
 <script type="text/javascript">
     var dragkit = dk,
         option = {
-            isShowPromptText: true,
-            // 回调函数, 覆盖节点
-            onCoverNode: function(currentDragkit) {
-                console.log('cover',currentDragkit);
-            },
-            // 回调函数, 添加节点
-            onAddNode: function(currentDragkit, node) {
-                console.log('add',currentDragkit, node);
-            },
-            // 回调函数, 删除节点
-            onDeleteNode: function(currentDragkit, node) {
-                console.log('del',currentDragkit, node);
-            },
-            // 回调函数, 渲染触发
-            onLoad: function(currentDragkit) {
-                console.log('load',currentDragkit);
-            }
+            isShowPromptText: true
+//            // 回调函数, 覆盖节点
+//            onCoverNode: function(currentDragkit) {
+//                console.log('cover',currentDragkit);
+//            },
+//            // 回调函数, 添加节点
+//            onAddNode: function(currentDragkit, node) {
+//                console.log('add',currentDragkit, node);
+//            },
+//            // 回调函数, 删除节点
+//            onDeleteNode: function(currentDragkit, node) {
+//                console.log('del',currentDragkit, node);
+//            },
+//            // 回调函数, 渲染触发
+//            onLoad: function(currentDragkit) {
+//                console.log('load',currentDragkit);
+//            }
         },
         domA = document.querySelector('.dk-container-a'),
         domB = document.querySelector('.dk-container-b'),

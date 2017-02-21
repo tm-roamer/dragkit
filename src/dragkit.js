@@ -104,6 +104,7 @@ function instance(options, container, originData) {
         // 初始化实例
         var index = cache.index();
         container.setAttribute(DK_ID, index);
+        // var layout = container.querySelector('.'+DK_LAYOUT);
         return cache.set(new DragKit(options, container, originData, index));
     }
 }

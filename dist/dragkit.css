@@ -2,10 +2,10 @@
 .dk-container {
     position: relative;
     z-index: 1;
-    width: 100%;
-    height: 100%;
     user-select:none;
     transition: height 0.15s;
+    width: 100%;
+    height: 100%;
 }
 .dk-start-container {
     z-index: 2;
