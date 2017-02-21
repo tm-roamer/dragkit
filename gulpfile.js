@@ -16,11 +16,11 @@ gulp.task('default', function() {
             // path.dirname += "/ciao";
             path.basename = package.name;
         }))
-        .pipe(gulp.dest('./dist'))
+        .pipe(gulp.dest('./docs'))
         .pipe(rename(function (path) {
             path.basename = package.name;
             path.extname = ".min.js"
         }))
         .pipe(uglify())
-        .pipe(gulp.dest('./dist'));
+        .pipe(gulp.dest('./docs'));
 });
