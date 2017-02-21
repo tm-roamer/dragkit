@@ -1,6 +1,14 @@
 # dragkit
 dragkit.js is a plugin for dragdrop 一个拖拽插件
 
+### DEMO地址
+
+ [https://tm-roamer.github.io/dragkit/](https://tm-roamer.github.io/dragkit/) 
+
+### 先上图,再逼逼
+  
+  ![github](https://github.com/tm-roamer/dragkit/blob/master/doc/dragkit.gif?raw=true "demo")
+  
 #### 使用说明
 
 npm run build
