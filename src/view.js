@@ -45,14 +45,30 @@ var view = {
         var content = document.createElement("div"),
             ele = document.createElement("div");
         content.className = DK_ITEM_CONTENT;
-        content.innerHTML = node.text;
+        content.innerHTML = node.text || '';
         ele.appendChild(content);
         ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
         ele.setAttribute(DK_ID, node.id || '');
         ele.style.cssText = this.setStyleTop(node.innerY);
-        // 节点悬停时需要显示删除图标
+        // 节点悬停时需要显示删除图标(拖拽节点和待删除节点不会显示删除图标)
         node.id && this.appendDelIco(ele, node.id);
         return ele;
+    },
+    update: function (node, ele, className) {
+        var content = ele.querySelector('.'+DK_ITEM_CONTENT);
+        content.innerHTML = node.text;
+        ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
+        ele.setAttribute(DK_ID, node.id || '');
+        ele.style.cssText = this.setStyleTop(node.innerY);
+        // 节点悬停时需要显示删除图标(拖拽节点和待删除节点不会显示删除图标)
+        node.id && this.appendDelIco(ele, node.id);
+        return ele;
+    },
+    show: function(ele) {
+        ele.classList.remove(DK_HIDE_ITEM);
+    },
+    hide: function(ele) {
+        ele.classList.add(DK_HIDE_ITEM);
     },
     remove: function (container, id, className) {
         className = className || DK_ITEM;

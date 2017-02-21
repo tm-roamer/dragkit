@@ -20,6 +20,12 @@
     border-radius: 15px;
     color: #fff;
 }
+.dk-show-item {
+    display: block;
+}
+.dk-hide-item {
+    display: none;
+}
 .dk-delete-item-ico {
     display: none;
 }
@@ -38,7 +44,7 @@
     border-radius: 12px;
     font-size: 12px;
     text-align: center;
-    line-height: 17px;
+    line-height: 16px;
     border: 1px solid #fff;
 }
 .dk-container .dk-item:hover .dk-delete-item-ico:hover {

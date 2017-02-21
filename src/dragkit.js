@@ -63,24 +63,30 @@ DragKit.prototype = {
         var ele = view.create(node);
         this.elements[node.id] = ele;
         this.container.appendChild(ele);
+        // 回调函数
+        this.opt.onAddNode && this.opt.onAddNode(this, node);
         return node;
     },
     remove: function (node) {
+        var rmNode = utils.clone(node);
         if (!(node && node.id)) return;
         this.data.forEach(function (n, idx, arr) {
             n.id === node.id && arr.splice(idx, 1);
         });
         delete this.elements[node.id];
         view.remove(this.container, node.id);
+        // 回调函数
+        this.opt.onDeleteNode && this.opt.onDeleteNode(this, rmNode);
     },
-    update: function(oldNode, newNode) {
-    },
+    update: function(oldNode, newNode) {},
     // 覆盖
     cover: function(oldNode, newNode) {
         newNode.innerY = oldNode.innerY; // 同步位置
         this.remove(oldNode);
         this.add(newNode);
         this.layout();
+        // 回调函数
+        this.opt.onCoverNode && this.opt.onCoverNode(this);
     },
     showPromptText: function(isShow, isDrag) {
         this.opt.isShowPromptText = (isShow && isDrag) || false;

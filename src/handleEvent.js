@@ -6,6 +6,7 @@ var handleEvent = {
         this.isbind = isbind;
         this.globalUnbind();
         this.globalBind();
+        dragdrop.init();
     },
     globalBind: function () {
         document.addEventListener('mousedown', this.mouseDown, false);
@@ -22,48 +23,44 @@ var handleEvent = {
         this.isbind = false;
     },
     mouseDown: function (event) {
-        // 点击删除图标, 删除节点
+        // 点击删除图标
         if (event.target.classList.contains(DK_DELETE_ITEM_ICO)) {
-            this.isDragDeleteNode = true;
+            return;
         }
-        // 正在拖拽情况
-        else {
-            // 记录位置, 通过比较拖拽距离来判断是否是拖拽, 如果是拖拽则阻止冒泡. 不触发点击事件
-            this.distanceX = event.pageX;
-            this.distanceY = event.pageY;
-            this.distance = dragdrop.dragStart(event);
-        }
+        // 是否点击了拖拽节点
+        var ele = view.searchUp(event.target, DK_ITEM);
+        if (!ele) return;
+        // 记录位置, 通过比较拖拽距离来判断是否是拖拽, 如果是拖拽则阻止冒泡. 不触发点击事件
+        handleEvent.distanceX = event.pageX;
+        handleEvent.distanceY = event.pageY;
+        dragdrop.dragStart(event, ele, function(distance) {
+            handleEvent.distance = distance;
+        });
     },
     mouseMove: function (event) {
         dragdrop.drag(event);
     },
     mouseUp: function (event) {
-        // 点击删除图标, 删除节点
-        if (this.isDragDeleteNode) {
-            var target = event.target,
-                dragkit = utils.getDom2Dragkit(target);
-            if (dragkit) {
-                dragkit.remove({id: target.getAttribute(DK_ID)});
-                dragkit.layout();
-                this.isDragDeleteNode = undefined;
-            }
-        }
-        // 正常拖拽情况
-        else {
-            dragdrop.dragEnd(event);
-        }
+        dragdrop.dragEnd(event);
     },
     click: function (event) {
-        if (this.distance) {
-            // 比较拖拽距离, 判断是否拖拽, 如果是拖拽则阻止冒泡. 不触发点击事件
-            var distanceX = Math.abs(event.pageX - this.distanceX || 0),
-                distanceY = Math.abs(event.pageY - this.distanceY || 0);
-            if ((this.distance <= distanceX || this.distance <= distanceY)) {
-                event.stopPropagation();
+        // 点击删除图标
+        if (event.target.classList.contains(DK_DELETE_ITEM_ICO)) {
+            var dragkit = utils.getDom2Dragkit(event.target),
+                nodeId = event.target.getAttribute(DK_ID);
+            if (!dragkit) return;
+            dragkit.remove({id: nodeId});
+            dragkit.layout();
+        } else {
+            var distanceX = Math.abs(event.pageX - handleEvent.distanceX || 0),
+                distanceY = Math.abs(event.pageY - handleEvent.distanceY || 0);
+            if (handleEvent.distance <= distanceX || handleEvent.distance <= distanceY) {
+                event.stopPropagation(); // event.preventDefault();
                 // 清理临时变量
-                this.distance = undefined;
-                this.distanceX = undefined;
-                this.distanceY = undefined;
+                delete handleEvent.distance;
+                delete handleEvent.distanceX;
+                delete handleEvent.distanceY;
+
             }
         }
     }
