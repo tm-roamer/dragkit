@@ -96,8 +96,6 @@ var conllision = {
                 };
                 // 碰撞
                 if (this.checkHit(n2, n1, undefined, coverNodeScale)) {
-                    console.log('----------');
-                    this.checkHit(n2, n1, undefined, coverNodeScale);
                     return {isNodeHit: true, coveredNode: n};
                 }
             }
