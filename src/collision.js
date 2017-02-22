@@ -35,58 +35,23 @@ var conllision = {
         // 重叠
         if (n2.xw > n1.x && n2.x < n1.xw) {
             if (n2.yh > n1.y && n2.y < n1.yh) {
-                // 左边接触
-                if (n1.x < n2.x) {
-                    // 三种情况, 左上角重叠, 左下角重叠, 正常重叠
-                    var h = n1.h;
-                    if (n1.y < n2.y) {
-                        h = n1.yh - n2.y
-                    } else if (n2.xw < n1.xw) {
-                        h = n2.yh - n1.y;
-                    }
-                    isHit = (n1.xw - n2.x) * h / n1.area >= scale;
-                    // console.log('left', (n1.xw - n2.x) * n1.h / n1.area >= scale);
-                }
-                // 上边接触
-                else if (n1.y < n2.y) {
-                    // 三种情况, 左上角重叠, 右上角重叠, 正常重叠
-                    var w = n1.w;
-                    if (n1.x < n2.x) {
-                        w = n1.xw - n2.x
-                    } else if (n2.xw < n1.xw) {
-                        w = n2.xw - n1.x;
-                    }
-                    isHit = (n1.yh - n2.y) * w / n1.area >= scale;
-                    // console.log('up', (n1.yh - n2.y) * n1.w / n1.area >= scale);
-                }
-                // 右边接触
-                else if (n2.xw < n1.xw) {
-                    // 三种情况, 右上角重叠, 右下角重叠, 正常重叠
-                    var h = n1.h;
-                    if (n1.y < n2.y) {
-                        h = n1.yh - n2.y
-                    } else if (n2.xw < n1.xw) {
-                        h = n2.yh - n1.y;
-                    }
-                    isHit = (n2.xw - n1.x) * h / n1.area >= scale;
-                    // console.log('right', (n2.xw - n1.x) * n1.h / n1.area >= scale);
-                }
-                // 下边接触
-                else if (n2.yh < n1.yh) {
-                    // 三种情况, 左下角重叠, 右下角重叠, 正常重叠
-                    var w = n1.w;
-                    if (n1.x < n2.x) {
-                        w = n1.xw - n2.x
-                    } else if (n2.xw < n1.xw) {
-                        w = n2.xw - n1.x;
-                    }
-                    isHit = (n2.yh - n1.y) * w / n1.area >= scale;
-                    // console.log('down', (n2.yh - n1.y) * n1.w, n1.h, (n2.yh - n1.y) * n1.w / n1.area >= scale);
-                }
-                // 包含
-                else {
-                    isHit = true;
-                }
+                // 默认包含
+                var w = n1.w, h = n1.h;
+
+                // 左边部分接触
+                if (n1.x < n2.x)
+                    w = n1.xw - n2.x;
+                // 右边部分接触
+                if (n2.xw < n1.xw)
+                    w = n2.xw - n1.x;
+                // 上边部分接触
+                if (n1.y < n2.y)
+                    h = n1.yh - n2.y;
+                // 下边部分接触
+                if (n2.yh < n1.yh)
+                    h = n2.yh - n1.y;
+
+                isHit = w * h / n1.area >= scale;
             }
         }
         return isHit;
