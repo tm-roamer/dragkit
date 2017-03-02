@@ -24,6 +24,7 @@ var f = function () {
     },
     setting = {
         className: '',                                   // 自定义换肤class
+        showFieldName: 'text',                           // 节点默认显示字段的属性名
         maxNodeNum: 4,                                   // 容器最多节点数量
         nodeH: 24,                                       // 单个节点的宽高
         isCoverNode: true,                               // 是否可以覆盖节点

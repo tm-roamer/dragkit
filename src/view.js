@@ -2,13 +2,13 @@
 // 展示对象, 操作DOM
 var view = {
     setContainerParam: function (opt, data, container) {
-        var text = container.querySelector('.' + DK_ITEM_PROMPT_TEXT);
+        var prompt = container.querySelector('.' + DK_ITEM_PROMPT_TEXT);
         var height = data.length * (opt.nodeH + opt.padding);
         if (data.length < opt.maxNodeNum && opt.isShowPromptText) {
             height = height + (opt.nodeH);
-            text.style.cssText = 'display:block;';
+            prompt.style.cssText = 'display:block;';
         } else {
-            text.style.cssText = 'display:none;';
+            prompt.style.cssText = 'display:none;';
         }
         container.style.cssText = 'height:' + height + 'px';
     },
@@ -32,7 +32,7 @@ var view = {
             fragment = document.createDocumentFragment();
         if (data && data.length > 0) {
             data.forEach(function (node, idx) {
-                var ele = self.create(node);
+                var ele = self.create(node, opt);
                 elements[node.id] = ele;
                 fragment.appendChild(ele);
             });
@@ -41,11 +41,11 @@ var view = {
         }
         return elements;
     },
-    create: function (node, className) {
+    create: function (node, opt, className) {
         var content = document.createElement("div"),
             ele = document.createElement("div");
         content.className = DK_ITEM_CONTENT;
-        content.innerHTML = node.text || '';
+        content.innerHTML = node[opt && opt.showFieldName] || '';
         ele.appendChild(content);
         ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
         ele.setAttribute(DK_ID, node.id || '');
@@ -54,9 +54,10 @@ var view = {
         node.id && this.appendDelIco(ele, node.id);
         return ele;
     },
-    update: function (node, ele, className) {
+    update: function (node, ele, opt, className) {
+        if (!node) return;
         var content = ele.querySelector('.'+DK_ITEM_CONTENT);
-        content.innerHTML = node.text;
+        content.innerHTML = node[opt.showFieldName] || '';
         ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
         ele.setAttribute(DK_ID, node.id || '');
         ele.style.cssText = this.setStyleTop(node.innerY);

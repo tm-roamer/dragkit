@@ -65,13 +65,13 @@
 <body>
 <div class="test-add">
     <!-- 新增的节点 -->
-    <div data-dk-node-info='{"text": "item1"}' class="dk-item dk-add-item">
+    <div data-dk-node-info='{"name": "item1"}' class="dk-item dk-add-item">
         <span class="text">item1</span>
     </div>
-    <div data-dk-node-info='{"text": "item2"}' class="dk-item dk-add-item">
+    <div data-dk-node-info='{"name": "item2"}' class="dk-item dk-add-item">
         <span class="text">item2</span>
     </div>
-    <div data-dk-node-info='{"text": "item3"}' class="dk-item dk-add-item">
+    <div data-dk-node-info='{"name": "item3"}' class="dk-item dk-add-item">
         <span class="text">item3</span>
     </div>
 </div>
@@ -117,7 +117,8 @@
 <script type="text/javascript">
     var dragkit = dk,
         option = {
-            isShowPromptText: true
+            isShowPromptText: true,
+            showFieldName: 'name'
 //            // 回调函数, 覆盖节点
 //            onCoverNode: function(currentDragkit) {
 //                console.log('cover',currentDragkit);
@@ -140,13 +141,13 @@
         domC = document.querySelector('.dk-container-c'),
         data = [
             {
-                text: 'Country'
+                name: 'Country'
             },
             {
-                text: 'Chinese'
+                name: 'Chinese'
             },
             {
-                text: 'Confirm'
+                name: 'Confirm'
             }
         ];
     // 初始化

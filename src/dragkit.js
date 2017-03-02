@@ -24,9 +24,9 @@ DragKit.prototype = {
         originData.forEach(function (node, idx) {
             data[idx] = {
                 id: self.number + '-' + (++self.autoIncrement),
-                text: node.text,
                 innerY: idx * (opt.nodeH + opt.padding)
             };
+            data[idx][opt.showFieldName] = node[opt.showFieldName];
         });
         return data;
     },
@@ -60,7 +60,7 @@ DragKit.prototype = {
         node.id = node.id || this.number + '-' + (++this.autoIncrement);
         node.innerY = node.innerY !== undefined ? node.innerY : this.data.length * (opt.nodeH + opt.padding);
         this.data.push(node);
-        var ele = view.create(node);
+        var ele = view.create(node, opt);
         this.elements[node.id] = ele;
         this.container.appendChild(ele);
         // 回调函数

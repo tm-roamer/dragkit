@@ -4,7 +4,7 @@ var dragdrop = {
     state: {},
     init: function() {
         this.dragNode = null;
-        this.dragElement = view.create({}, DK_HIDE_ITEM);
+        this.dragElement = view.create({}, {}, DK_HIDE_ITEM);
         document.body.appendChild(this.dragElement);
     },
     // 开始拖拽
@@ -46,7 +46,8 @@ var dragdrop = {
             // 复制节点数据
             this.dragNode = utils.clone(this.dragkit.query(id));
         }
-        view.update(this.dragNode, this.dragElement, className);
+        var opt = this.dragkit ? this.dragkit.opt : {showFieldName: setting.showFieldName};
+        view.update(this.dragNode, this.dragElement, opt, className);
         view.show(this.dragElement);
     },
     // 移动拖拽节点
@@ -67,7 +68,6 @@ var dragdrop = {
         // 拖拽节点的当前坐标
         var node = this.getDragElementCoord(event);
         var hit = conllision.checkContainerHit(node, this.state.inside);
-        // @fix 临时
         this.dragNodeCoord = hit.dragNodeCoord;
         // 根据碰撞结果判断是否进入容器
         if (hit.isContainerHit) {
@@ -111,9 +111,6 @@ var dragdrop = {
             && dragkit.data.length >= dragkit.opt.maxNodeNum
             && !this.state.isPlaceHolderNode
             && (this.state.isDragAddNode || this.state.isDragCrossNode)) {
-            // 节点碰撞
-            // var containerTop = view.getOffset(dragkit.container).top;
-            // var y = this.dragNodeCoord.y - containerTop;
             // 拖拽节点的当前坐标
             var node = this.getDragElementCoord(event);
             var nodeHit = conllision.checkNodeHit(dragkit.container,
@@ -127,7 +124,6 @@ var dragdrop = {
                 return this.setCoverNodeStyle(dragkit);
             }
         }
-        // @fix 应用布局
         this.applyLayout(this.dragNode, dragkit);
     },
     // 拖拽离开容器
@@ -165,8 +161,8 @@ var dragdrop = {
             }
         }
     },
+    // 拖拽节点的当前坐标
     getDragElementCoord: function(event) {
-        // 拖拽节点的当前坐标
         return {
             x: event.pageX - this.offsetX,
             y: event.pageY - this.offsetY,
