@@ -40,6 +40,7 @@
     var f = function() {},
         setting = {
             className: '', // 自定义换肤class
+            showFieldName: 'text', // 节点默认显示字段的属性名
             maxNodeNum: 4, // 容器最多节点数量
             nodeH: 24, // 单个节点的宽高
             isCoverNode: true, // 是否可以覆盖节点
@@ -202,8 +203,6 @@
                     };
                     // 碰撞
                     if (this.checkHit(n2, n1, undefined, coverNodeScale)) {
-                        console.log('----------');
-                        this.checkHit(n2, n1, undefined, coverNodeScale);
                         return {
                             isNodeHit: true,
                             coveredNode: n
@@ -244,13 +243,13 @@
     // 展示对象, 操作DOM
     var view = {
         setContainerParam: function(opt, data, container) {
-            var text = container.querySelector('.' + DK_ITEM_PROMPT_TEXT);
+            var prompt = container.querySelector('.' + DK_ITEM_PROMPT_TEXT);
             var height = data.length * (opt.nodeH + opt.padding);
             if (data.length < opt.maxNodeNum && opt.isShowPromptText) {
                 height = height + (opt.nodeH);
-                text.style.cssText = 'display:block;';
+                prompt.style.cssText = 'display:block;';
             } else {
-                text.style.cssText = 'display:none;';
+                prompt.style.cssText = 'display:none;';
             }
             container.style.cssText = 'height:' + height + 'px';
         },
@@ -277,7 +276,7 @@
                 fragment = document.createDocumentFragment();
             if (data && data.length > 0) {
                 data.forEach(function(node, idx) {
-                    var ele = self.create(node);
+                    var ele = self.create(node, opt);
                     elements[node.id] = ele;
                     fragment.appendChild(ele);
                 });
@@ -286,11 +285,11 @@
             }
             return elements;
         },
-        create: function(node, className) {
+        create: function(node, opt, className) {
             var content = document.createElement("div"),
                 ele = document.createElement("div");
             content.className = DK_ITEM_CONTENT;
-            content.innerHTML = node.text || '';
+            content.innerHTML = node[opt && opt.showFieldName] || '';
             ele.appendChild(content);
             ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
             ele.setAttribute(DK_ID, node.id || '');
@@ -299,9 +298,10 @@
             node.id && this.appendDelIco(ele, node.id);
             return ele;
         },
-        update: function(node, ele, className) {
+        update: function(node, ele, opt, className) {
+            if (!node) return;
             var content = ele.querySelector('.' + DK_ITEM_CONTENT);
-            content.innerHTML = node.text;
+            content.innerHTML = node[opt.showFieldName] || '';
             ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
             ele.setAttribute(DK_ID, node.id || '');
             ele.style.cssText = this.setStyleTop(node.innerY);
@@ -424,7 +424,7 @@
         state: {},
         init: function() {
             this.dragNode = null;
-            this.dragElement = view.create({}, DK_HIDE_ITEM);
+            this.dragElement = view.create({}, {}, DK_HIDE_ITEM);
             document.body.appendChild(this.dragElement);
         },
         // 开始拖拽
@@ -466,7 +466,10 @@
                 // 复制节点数据
                 this.dragNode = utils.clone(this.dragkit.query(id));
             }
-            view.update(this.dragNode, this.dragElement, className);
+            var opt = this.dragkit ? this.dragkit.opt : {
+                showFieldName: setting.showFieldName
+            };
+            view.update(this.dragNode, this.dragElement, opt, className);
             view.show(this.dragElement);
         },
         // 移动拖拽节点
@@ -487,7 +490,6 @@
             // 拖拽节点的当前坐标
             var node = this.getDragElementCoord(event);
             var hit = conllision.checkContainerHit(node, this.state.inside);
-            // @fix 临时
             this.dragNodeCoord = hit.dragNodeCoord;
             // 根据碰撞结果判断是否进入容器
             if (hit.isContainerHit) {
@@ -531,9 +533,6 @@
                 && dragkit.data.length >= dragkit.opt.maxNodeNum
                 && !this.state.isPlaceHolderNode
                 && (this.state.isDragAddNode || this.state.isDragCrossNode)) {
-                // 节点碰撞
-                // var containerTop = view.getOffset(dragkit.container).top;
-                // var y = this.dragNodeCoord.y - containerTop;
                 // 拖拽节点的当前坐标
                 var node = this.getDragElementCoord(event);
                 var nodeHit = conllision.checkNodeHit(dragkit.container,
@@ -547,7 +546,6 @@
                     return this.setCoverNodeStyle(dragkit);
                 }
             }
-            // @fix 应用布局
             this.applyLayout(this.dragNode, dragkit);
         },
         // 拖拽离开容器
@@ -585,8 +583,8 @@
                 }
             }
         },
+        // 拖拽节点的当前坐标
         getDragElementCoord: function(event) {
-            // 拖拽节点的当前坐标
             return {
                 x: event.pageX - this.offsetX,
                 y: event.pageY - this.offsetY,
@@ -665,9 +663,9 @@
             originData.forEach(function(node, idx) {
                 data[idx] = {
                     id: self.number + '-' + (++self.autoIncrement),
-                    text: node.text,
                     innerY: idx * (opt.nodeH + opt.padding)
                 };
+                data[idx][opt.showFieldName] = node[opt.showFieldName];
             });
             return data;
         },
@@ -701,7 +699,7 @@
             node.id = node.id || this.number + '-' + (++this.autoIncrement);
             node.innerY = node.innerY !== undefined ? node.innerY : this.data.length * (opt.nodeH + opt.padding);
             this.data.push(node);
-            var ele = view.create(node);
+            var ele = view.create(node, opt);
             this.elements[node.id] = ele;
             this.container.appendChild(ele);
             // 回调函数
