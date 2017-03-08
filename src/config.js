@@ -4,6 +4,7 @@ var THROTTLE_TIME = 14,                              // 节流函数的间隔时
     DK_CONTAINER = 'dk-container',                   // 拖拽容器classname
     DK_START_CONTAINER = 'dk-start-container',       // 跨容器拖拽时开始容器的classname
     DK_ID = 'data-dk-id',                            // 拖拽节点的数据标识id
+    DK_TEXT = 'data-dk-text',                        // 拖拽节点的显示字段
     DK_NODE_INFO = 'data-dk-node-info',              // 待新增拖拽节点携带的数据
     DK_ITEM = 'dk-item',                             // 拖拽节点classname
     DK_SHOW_ITEM = 'dk-show-item',                   // 拖拽节点显示classname

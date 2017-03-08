@@ -1,6 +1,27 @@
 
 // 展示对象, 操作DOM
 var view = {
+    // 转换初始化, 将初始dom转换成js对象
+    dom2obj: function (container, dragkit) {
+        var j = 0, 
+            arr = [], 
+            opt = dragkit.opt,
+            elements = container.children;
+        dragkit.elements = {};
+        for (var i = 0, len = elements.length; i < len; i++) {
+            var ele = elements[i];
+            if (ele.classList.contains(DK_ITEM)) {
+                var temp = j++, 
+                    id  = ele.getAttribute(DK_ID);
+                arr[temp] = {
+                    id: id
+                };
+                arr[temp][opt.showFieldName] = ele.getAttribute(DK_TEXT);
+                dragkit.elements[id] = ele;
+            }
+        }
+        return arr;
+    },
     setContainerParam: function (opt, data, container) {
         var prompt = container.querySelector('.' + DK_ITEM_PROMPT_TEXT);
         var height = data.length * (opt.nodeH + opt.padding);

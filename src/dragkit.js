@@ -12,9 +12,17 @@ DragKit.prototype = {
         this.autoIncrement = 0;                         // 节点的自增主键
         this.opt = utils.extend(setting, options);      // 配置项
         this.container = container;                     // 容器DOM
-        this.originData = originData;                   // 原始数据
-        this.data = this.setData(originData);           // 渲染数据
-        this.elements = view.init(this.data, this.opt, this.container); // 缓存的节点DOM
+        if (originData) {
+            this.originData = originData;               // 原始数据
+            this.data = this.setData(originData);       // 渲染数据
+            this.elements = view.init(this.data, this.opt, this.container); // 缓存的节点DOM
+        } else {
+            var arr = view.dom2obj(container, this);
+            if (arr && arr.length > 0) {
+                this.data = this.setData(arr);
+                view.render(this.opt, this.data, this.elements, this.container);
+            }
+        }
     },
     destroy: function() {
         // 注销
@@ -38,6 +46,7 @@ DragKit.prototype = {
         return this.data;
     },
     layout: function (dragNode, innerY) {
+        // @fix 只有真正坐标发生改变才会触发render 节流
         var node = (dragNode && this.query(dragNode.id));
         node && (node.innerY = innerY);
         // 排序
@@ -104,7 +113,6 @@ function instance(options, container, originData) {
         // 初始化实例
         var index = cache.index();
         container.setAttribute(DK_ID, index);
-        // var layout = container.querySelector('.'+DK_LAYOUT);
         return cache.set(new DragKit(options, container, originData, index));
     }
 }

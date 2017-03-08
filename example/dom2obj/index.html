@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="../../docs/dragkit.css">
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            background-color: #333;
+        }
+
+        .test-add {
+            top: 20px;
+            left: 20px;
+            width: 150px;
+            position: absolute;
+            background-color: #fff;
+        }
+
+        .test-add::after {
+            content: "待添加节点";
+        }
+
+        .test-add > div {
+            position: static;
+            margin-bottom: 5px;
+            width: 60px;
+            padding: 2px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .test-a {
+            top: 20px;
+            left: 220px;
+            width: 150px;
+            position: absolute;
+            background-color: #fff;
+        }
+
+        .test-b {
+            width: 150px;
+            position: absolute;
+            left: 430px;
+            top: 20px;
+            background-color: #fff;
+        }
+
+        .test-c {
+            width: 150px;
+            position: absolute;
+            left: 650px;
+            top: 20px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+<div class="test-add">
+    <!-- 新增的节点 -->
+    <div data-dk-node-info='{"name": "item1"}' class="dk-item dk-add-item">
+        <span class="text">item1</span>
+    </div>
+    <div data-dk-node-info='{"name": "item2"}' class="dk-item dk-add-item">
+        <span class="text">item2</span>
+    </div>
+    <div data-dk-node-info='{"name": "item3"}' class="dk-item dk-add-item">
+        <span class="text">item3</span>
+    </div>
+</div>
+
+<div class="test-a">
+    <!-- 外层容器 -->
+    <div class="dk-container dk-container-a">    
+        <!-- 提示文字 -->
+        <div class="dk-item-prompt-text" style="display: block;">
+            Drag data fields here
+        </div>
+        <div class="dk-item dk-animate-item" data-dk-id="1-1" data-dk-text="Country">
+            <div class="dk-item-content">Country</div>
+            <div class="dk-delete-item-ico" data-dk-id="1-1">✕</div>
+        </div>
+        <div class="dk-item dk-animate-item" data-dk-id="1-2" data-dk-text="Chinese">
+            <div class="dk-item-content">Chinese</div>
+            <div class="dk-delete-item-ico" data-dk-id="1-2">✕</div>
+        </div>
+        <div class="dk-item dk-animate-item" data-dk-id="1-3" data-dk-text="Confirm">
+            <div class="dk-item-content">Confirm</div>
+            <div class="dk-delete-item-ico" data-dk-id="1-3">✕</div>
+        </div>
+    </div>
+</div>
+
+<div class="test-b">
+    <!-- 外层容器 -->
+    <div class="dk-container dk-container-b">
+        <!-- 提示文字 -->
+        <div class="dk-item-prompt-text">
+            Drag data fields here
+        </div>
+    </div>
+</div>
+
+<div class="test-c">
+    <!-- 外层容器 -->
+    <div class="dk-container dk-container-c">
+        <!-- 提示文字 -->
+        <div class="dk-item-prompt-text">
+            Drag data fields here
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="../../src/config.js"></script>
+<script type="text/javascript" src="../../src/cache.js"></script>
+<script type="text/javascript" src="../../src/collision.js"></script>
+<script type="text/javascript" src="../../src/utils.js"></script>
+<script type="text/javascript" src="../../src/view.js"></script>
+<script type="text/javascript" src="../../src/handleEvent.js"></script>
+<script type="text/javascript" src="../../src/dragdrop.js"></script>
+<script type="text/javascript" src="../../src/dragkit.js"></script>
+<script type="text/javascript">
+    var dragkit = dk,
+        option = {
+            isShowPromptText: true,
+            showFieldName: 'name'
+//            // 回调函数, 覆盖节点
+//            onCoverNode: function(currentDragkit) {
+//                console.log('cover',currentDragkit);
+//            },
+//            // 回调函数, 添加节点
+//            onAddNode: function(currentDragkit, node) {
+//                console.log('add',currentDragkit, node);
+//            },
+//            // 回调函数, 删除节点
+//            onDeleteNode: function(currentDragkit, node) {
+//                console.log('del',currentDragkit, node);
+//            },
+//            // 回调函数, 渲染触发
+//            onLoad: function(currentDragkit) {
+//                console.log('load',currentDragkit);
+//            }
+        },
+        domA = document.querySelector('.dk-container-a'),
+        domB = document.querySelector('.dk-container-b'),
+        domC = document.querySelector('.dk-container-c'),
+        data = [
+            {
+                name: 'Country'
+            },
+            {
+                name: 'Chinese'
+            },
+            {
+                name: 'Confirm'
+            }
+        ];
+    // 初始化
+    var a = dragkit.instance(option, domA);
+    var b = dragkit.instance(option, domB, data);
+    var c = dragkit.instance(option, domC, data);
+</script>
+</body>
+</html>

@@ -21,6 +21,7 @@
         DK_CONTAINER = 'dk-container', // 拖拽容器classname
         DK_START_CONTAINER = 'dk-start-container', // 跨容器拖拽时开始容器的classname
         DK_ID = 'data-dk-id', // 拖拽节点的数据标识id
+        DK_TEXT = 'data-dk-text', // 拖拽节点的显示字段
         DK_NODE_INFO = 'data-dk-node-info', // 待新增拖拽节点携带的数据
         DK_ITEM = 'dk-item', // 拖拽节点classname
         DK_SHOW_ITEM = 'dk-show-item', // 拖拽节点显示classname
@@ -242,6 +243,27 @@
     // 视图对象 
     // 展示对象, 操作DOM
     var view = {
+        // 转换初始化, 将初始dom转换成js对象
+        dom2obj: function(container, dragkit) {
+            var j = 0,
+                arr = [],
+                opt = dragkit.opt,
+                elements = container.children;
+            dragkit.elements = {};
+            for (var i = 0, len = elements.length; i < len; i++) {
+                var ele = elements[i];
+                if (ele.classList.contains(DK_ITEM)) {
+                    var temp = j++,
+                        id = ele.getAttribute(DK_ID);
+                    arr[temp] = {
+                        id: id
+                    };
+                    arr[temp][opt.showFieldName] = ele.getAttribute(DK_TEXT);
+                    dragkit.elements[id] = ele;
+                }
+            }
+            return arr;
+        },
         setContainerParam: function(opt, data, container) {
             var prompt = container.querySelector('.' + DK_ITEM_PROMPT_TEXT);
             var height = data.length * (opt.nodeH + opt.padding);
@@ -649,9 +671,17 @@
             this.autoIncrement = 0; // 节点的自增主键
             this.opt = utils.extend(setting, options); // 配置项
             this.container = container; // 容器DOM
-            this.originData = originData; // 原始数据
-            this.data = this.setData(originData); // 渲染数据
-            this.elements = view.init(this.data, this.opt, this.container); // 缓存的节点DOM
+            if (originData) {
+                this.originData = originData; // 原始数据
+                this.data = this.setData(originData); // 渲染数据
+                this.elements = view.init(this.data, this.opt, this.container); // 缓存的节点DOM
+            } else {
+                var arr = view.dom2obj(container, this);
+                if (arr && arr.length > 0) {
+                    this.data = this.setData(arr);
+                    view.render(this.opt, this.data, this.elements, this.container);
+                }
+            }
         },
         destroy: function() {
             // 注销
@@ -677,6 +707,7 @@
             return this.data;
         },
         layout: function(dragNode, innerY) {
+            // @fix 只有真正坐标发生改变才会触发render 节流
             var node = (dragNode && this.query(dragNode.id));
             node && (node.innerY = innerY);
             // 排序
@@ -743,7 +774,6 @@
             // 初始化实例
             var index = cache.index();
             container.setAttribute(DK_ID, index);
-            // var layout = container.querySelector('.'+DK_LAYOUT);
             return cache.set(new DragKit(options, container, originData, index));
         }
     }
