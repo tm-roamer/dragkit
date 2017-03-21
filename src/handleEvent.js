@@ -27,21 +27,35 @@ var handleEvent = {
         if (event.target.classList.contains(DK_DELETE_ITEM_ICO)) {
             return;
         }
-        // 是否点击了拖拽节点
-        var ele = view.searchUp(event.target, DK_ITEM);
-        if (!ele) return;
+        handleEvent.dragStart = true;
         // 记录位置, 通过比较拖拽距离来判断是否是拖拽, 如果是拖拽则阻止冒泡. 不触发点击事件
+        handleEvent.distance = setting.distance;
         handleEvent.distanceX = event.pageX;
         handleEvent.distanceY = event.pageY;
-        dragdrop.dragStart(event, ele, function(distance) {
-            handleEvent.distance = distance;
-        });
+        handleEvent.offsetX = event.offsetX || 0;
+        handleEvent.offsetY = event.offsetY || 0;
     },
     mouseMove: function (event) {
+        if (handleEvent.dragStart && handleEvent.isDrag(event)) {
+            handleEvent.dragStart = false;
+            document.body.classList.add(DK_USER_SELECT);
+            // 是否点击了拖拽节点
+            var ele = view.searchUp(event.target, DK_ITEM);
+            if (!ele) return;
+            dragdrop.dragStart(event, handleEvent.offsetX, handleEvent.offsetY, ele);
+            return;
+        }
         dragdrop.drag(event);
     },
     mouseUp: function (event) {
+        document.body.classList.remove(DK_USER_SELECT);
         dragdrop.dragEnd(event);
+        // 清理临时变量
+        delete handleEvent.distance;
+        delete handleEvent.distanceX;
+        delete handleEvent.distanceY;
+        delete handleEvent.offsetX;
+        delete handleEvent.offsetY;
     },
     click: function (event) {
         // 点击删除图标
@@ -52,16 +66,18 @@ var handleEvent = {
             dragkit.remove({id: nodeId});
             dragkit.layout();
         } else {
-            var distanceX = Math.abs(event.pageX - handleEvent.distanceX || 0),
-                distanceY = Math.abs(event.pageY - handleEvent.distanceY || 0);
-            if (handleEvent.distance <= distanceX || handleEvent.distance <= distanceY) {
-                event.stopPropagation(); // event.preventDefault();
-                // 清理临时变量
-                delete handleEvent.distance;
-                delete handleEvent.distanceX;
-                delete handleEvent.distanceY;
-
+            if (!handleEvent.dragStart && handleEvent.dragStart !== undefined) {
+                // event.preventDefault();
+                event.stopPropagation();
+                delete handleEvent.dragStart
             }
+        }
+    },
+    isDrag: function(event) {
+        var distanceX = Math.abs(event.pageX - handleEvent.distanceX || 0),
+            distanceY = Math.abs(event.pageY - handleEvent.distanceY || 0);
+        if (handleEvent.distance < distanceX || handleEvent.distance < distanceY) {
+            return true;
         }
     }
 };

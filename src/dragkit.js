@@ -17,15 +17,24 @@ DragKit.prototype = {
             this.data = this.setData(originData);       // 渲染数据
             this.elements = view.init(this.data, this.opt, this.container); // 缓存的节点DOM
         } else {
+            this.data = [];
+            this.elements = {};
             var arr = view.dom2obj(container, this);
             if (arr && arr.length > 0) {
                 this.data = this.setData(arr);
                 view.render(this.opt, this.data, this.elements, this.container);
+                // 回调函数
+                this.opt.onInit && this.opt.onInit(this, this.data);
             }
         }
     },
     destroy: function() {
-        // 注销
+        delete this.number;
+        delete this.autoIncrement;
+        delete this.opt;
+        delete this.data;
+        delete this.elements;
+        delete this.container;
     },
     setData: function (originData) {
         var data = [], opt = this.opt, self = this;
@@ -57,6 +66,8 @@ DragKit.prototype = {
         this.resetData();
         // 重绘
         view.render(this.opt, this.data, this.elements, this.container);
+        // 回调函数
+        this.opt.onLayout && this.opt.onLayout(this, this.data);
     },
     query: function (id) {
         if (!id) return undefined;
@@ -76,6 +87,19 @@ DragKit.prototype = {
         this.opt.onAddNode && this.opt.onAddNode(this, node);
         return node;
     },
+    update: function(oldId, newId) {
+        var node = this.query(oldId);
+        node.id = newId;
+        var ele = this.elements[oldId];
+        ele.setAttribute(DK_ID, newId);
+        var delIco = ele.querySelector('.'+DK_DELETE_ITEM_ICO);
+        delIco && delIco.setAttribute(DK_ID, newId || '');
+        this.elements[newId] = ele;
+        delete this.elements[oldId];
+        // 回调函数
+        this.opt.onEditNode && this.opt.onEditNode(this, newId);
+        return node;
+    },
     remove: function (node) {
         var rmNode = utils.clone(node);
         if (!(node && node.id)) return;
@@ -87,7 +111,6 @@ DragKit.prototype = {
         // 回调函数
         this.opt.onDeleteNode && this.opt.onDeleteNode(this, rmNode);
     },
-    update: function(oldNode, newNode) {},
     // 覆盖
     cover: function(oldNode, newNode) {
         newNode.innerY = oldNode.innerY; // 同步位置
@@ -119,13 +142,22 @@ function instance(options, container, originData) {
 
 // 销毁实例
 function destroy(dragkit) {
-    delete cache[dragkit.opt.container.getAttribute(DK_ID)];
-    dragkit.destroy();
-    dragkit = null;
+    if (dragkit) {
+        dragkit.container.removeAttribute(DK_ID);
+        cache.remove(dragkit);
+        dragkit.destroy();
+        dragkit = null;
+    }
 }
 
 dk = {
-    version: "1.1.0",
+    version: "1.1.3",
     instance: instance,
-    destroy: destroy
+    destroy: destroy,
+    get: function(dom) {
+        return utils.getDom2Dragkit(dom);
+    },
+    list: function() {
+        return cache.list();
+    }
 };

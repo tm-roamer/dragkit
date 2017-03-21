@@ -15,10 +15,11 @@
 })(window, function(dk) {
     'use strict';
 
-    // 配置对象 
+    // 配置对象
     // 常量
     var THROTTLE_TIME = 14, // 节流函数的间隔时间单位ms, FPS = 1000 / THROTTLE_TIME
         DK_CONTAINER = 'dk-container', // 拖拽容器classname
+        DK_USER_SELECT = "dk-user-select", // 拖拽进行中, 在body标签动态绑定, 防止文本选中
         DK_START_CONTAINER = 'dk-start-container', // 跨容器拖拽时开始容器的classname
         DK_ID = 'data-dk-id', // 拖拽节点的数据标识id
         DK_TEXT = 'data-dk-text', // 拖拽节点的显示字段
@@ -41,23 +42,24 @@
     var f = function() {},
         setting = {
             className: '', // 自定义换肤class
-            showFieldName: 'text', // 节点默认显示字段的属性名
-            maxNodeNum: 4, // 容器最多节点数量
-            nodeH: 24, // 单个节点的宽高
+            maxNodeNum: 999, // 容器最多节点数量
+            nodeH: 26, 		 // 单个节点的宽高
             isCoverNode: true, // 是否可以覆盖节点
-            hitScale: 0.6, // 容器碰撞的面积重叠比例
-            coverNodeScale: 0.7, // 节点覆盖重叠的比例值
+            hitScale: 0.6, 		// 容器碰撞的面积重叠比例
+            coverNodeScale: 0.7, 	// 节点覆盖重叠的比例值
             isShowPromptText: false, // 是否显示提示文字, 默认不显示
-            padding: 5, // 节点块之间的间距, 默认都为5px
-            distance: 5, // 触发拖拽的拖拽距离,默认5px
-            // editNode: f,                                     // 回调函数, 更新节点
-            onCoverNode: f, // 回调函数, 覆盖节点
-            onAddNode: f, // 回调函数, 添加节点
-            onDeleteNode: f, // 回调函数, 删除节点
-            onLoad: f // 回调函数, 渲染触发
+            padding: 6, 			// 节点块之间的间距, 默认都为5px
+            distance: 5, 		// 触发拖拽的拖拽距离,默认5px
+            // onCoverNode: f, 	// 回调函数, 覆盖节点
+            onEditNode: f,    	// 回调函数, 更新节点
+            onInit: f,			// 回调函数, 初始化的回调
+            onAddNode: f, 	 	// 回调函数, 添加节点
+            onDeleteNode: f, 	// 回调函数, 删除节点
+            onLoad: f, 		 	// 回调函数, mouseup触发
+            onLayout: f		 	// 回调函数, 重新布局触发
         };
 
-    // 工具对象 
+    // 工具对象
     // 工具类
     var utils = {
         // 属性拷贝
@@ -98,7 +100,7 @@
         }
     };
 
-    // 碰撞检测 
+    // 碰撞检测
     // 碰撞检测对象
     var conllision = {
 
@@ -219,7 +221,7 @@
     };
 
 
-    // 缓存对象 
+    // 缓存对象
     // 拖拽对象的缓存对象
     var cache = {
         init: function() {
@@ -234,31 +236,33 @@
             this.arr.push(obj);
             return obj;
         },
+        remove: function(dk) {
+            this.arr.forEach(function(obj, i, arr) {
+                dk === obj && arr.splice(i, 1);
+            });
+        },
         index: function() {
             return this.arr.length + 1;
+        },
+        list: function() {
+            return this.arr;
         }
     };
 
 
-    // 视图对象 
+    // 视图对象
     // 展示对象, 操作DOM
     var view = {
         // 转换初始化, 将初始dom转换成js对象
         dom2obj: function(container, dragkit) {
-            var j = 0,
-                arr = [],
-                opt = dragkit.opt,
+            var arr = [],
                 elements = container.children;
             dragkit.elements = {};
-            for (var i = 0, len = elements.length; i < len; i++) {
+            for (var j = 0, i = 0; i < elements.length; i++) {
                 var ele = elements[i];
                 if (ele.classList.contains(DK_ITEM)) {
-                    var temp = j++,
-                        id = ele.getAttribute(DK_ID);
-                    arr[temp] = {
-                        id: id
-                    };
-                    arr[temp][opt.showFieldName] = ele.getAttribute(DK_TEXT);
+                    var id = ele.getAttribute(DK_ID);
+                    arr[j++] = {id: id};
                     dragkit.elements[id] = ele;
                 }
             }
@@ -283,65 +287,68 @@
         getOffset: function(node, offset, parent) {
             if (!parent)
                 return node.getBoundingClientRect();
-            offset = offset || {
-                top: 0,
-                left: 0
-            };
+            offset = offset || {top: 0, left: 0};
             if (node === null || node === parent) return offset;
             offset.top += node.offsetTop;
             offset.left += node.offsetLeft;
             return this.getOffset(node.offsetParent, offset, parent);
         },
-        init: function(data, opt, container) {
-            var self = this,
-                elements = {},
-                fragment = document.createDocumentFragment();
-            if (data && data.length > 0) {
-                data.forEach(function(node, idx) {
-                    var ele = self.create(node, opt);
-                    elements[node.id] = ele;
-                    fragment.appendChild(ele);
-                });
-                this.setContainerParam(opt, data, container);
-                container.appendChild(fragment);
-            }
-            return elements;
-        },
-        create: function(node, opt, className) {
+        create: function(node, element, className) {
             var content = document.createElement("div"),
+                delIco = document.createElement("div"),
                 ele = document.createElement("div");
+            delIco.className = DK_DELETE_ITEM_ICO;
             content.className = DK_ITEM_CONTENT;
-            content.innerHTML = node[opt && opt.showFieldName] || '';
+            if (node && element) {
+                [].map.call(element.classList, function(cla) {
+                    if (cla.indexOf('dk-') === -1) {
+                        ele.classList.add(cla);
+                    }
+                });
+                ele.classList.add(DK_ITEM);
+                ele.classList.add(DK_ANIMATE_ITEM);
+                ele.setAttribute(DK_ID, node.id || '');
+                ele.style.cssText = this.setStyleTop(node.innerY || 0);
+                content.innerHTML = element.querySelector("." + DK_ITEM_CONTENT).innerHTML;
+                delIco.innerHTML = element.querySelector("." + DK_DELETE_ITEM_ICO).innerHTML;
+                delIco.setAttribute(DK_ID, node.id || '');
+            } else {
+                // 初始拖拽节点
+                content.innerHTML = '';
+                delIco.innerHTML = '';
+                ele.classList.add(DK_HIDE_ITEM);
+            }
+            ele.appendChild(delIco);
             ele.appendChild(content);
-            ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
-            ele.setAttribute(DK_ID, node.id || '');
-            ele.style.cssText = this.setStyleTop(node.innerY);
-            // 节点悬停时需要显示删除图标(拖拽节点和待删除节点不会显示删除图标)
-            node.id && this.appendDelIco(ele, node.id);
             return ele;
-        },
-        update: function(node, ele, opt, className) {
-            if (!node) return;
-            var content = ele.querySelector('.' + DK_ITEM_CONTENT);
-            content.innerHTML = node[opt.showFieldName] || '';
-            ele.className = className || DK_ITEM + ' ' + DK_ANIMATE_ITEM;
-            ele.setAttribute(DK_ID, node.id || '');
-            ele.style.cssText = this.setStyleTop(node.innerY);
-            // 节点悬停时需要显示删除图标(拖拽节点和待删除节点不会显示删除图标)
-            node.id && this.appendDelIco(ele, node.id);
-            return ele;
-        },
-        show: function(ele) {
-            ele.classList.remove(DK_HIDE_ITEM);
-        },
-        hide: function(ele) {
-            ele.classList.add(DK_HIDE_ITEM);
         },
         remove: function(container, id, className) {
             className = className || DK_ITEM;
             var attrSelector = id ? '[' + DK_ID + '="' + (id || '') + '"]' : '';
             var delElement = container.querySelector('div.' + className + attrSelector);
             delElement && container.removeChild(delElement);
+        },
+        show: function(dragElement, node, ele, className) {
+            if (!node) return;
+            dragElement.className = '';
+            [].map.call(ele.classList, function(cla) {
+                if (cla.indexOf('dk-') === -1) {
+                    dragElement.classList.add(cla);
+                }
+            });
+            dragElement.className += ' ' + className;
+            dragElement.setAttribute(DK_ID, node.id || '');
+            dragElement.style.cssText = this.setStyleTop(node.innerY);
+
+            var content = dragElement.querySelector("." + DK_ITEM_CONTENT);
+            var delIco = dragElement.querySelector("." + DK_DELETE_ITEM_ICO);
+            content.innerHTML = ele.querySelector("." + DK_ITEM_CONTENT).innerHTML;
+            delIco.innerHTML = ele.querySelector("." + DK_DELETE_ITEM_ICO).innerHTML;
+            delIco.setAttribute(DK_ID, node.id || '');
+        },
+        hide: function(dragElement) {
+            dragElement.classList.add(DK_HIDE_ITEM);
+            dragElement.querySelector("." + DK_ITEM_CONTENT).innerHTML = '';
         },
         render: function(opt, data, elements, container) {
             for (var id in elements) {
@@ -351,7 +358,7 @@
                         var node = data.filter(function(n) {
                             return n.id === ele.getAttribute(DK_ID)
                         })[0];
-                        ele.style.cssText = this.setStyleTop(node.innerY);
+                        node && (ele.style.cssText = this.setStyleTop(node.innerY));
                     }
                 }
             }
@@ -359,17 +366,10 @@
         },
         setStyleTop: function(top) {
             return ';top:' + top + 'px;';
-        },
-        appendDelIco: function(ele, id) {
-            var delIco = document.createElement("div");
-            delIco.className = DK_DELETE_ITEM_ICO;
-            delIco.innerHTML = '\u2715';
-            delIco.setAttribute(DK_ID, id);
-            ele.appendChild(delIco);
         }
     };
 
-    // 监听对象 
+    // 监听对象
     // 事件处理对象
     var handleEvent = {
         init: function(isbind) {
@@ -394,71 +394,78 @@
             this.isbind = false;
         },
         mouseDown: function(event) {
-            // 点击删除图标
-            if (event.target.classList.contains(DK_DELETE_ITEM_ICO)) {
-                return;
-            }
-            // 是否点击了拖拽节点
-            var ele = view.searchUp(event.target, DK_ITEM);
-            if (!ele) return;
+            handleEvent.dragStart = true;
             // 记录位置, 通过比较拖拽距离来判断是否是拖拽, 如果是拖拽则阻止冒泡. 不触发点击事件
+            handleEvent.distance = setting.distance;
             handleEvent.distanceX = event.pageX;
             handleEvent.distanceY = event.pageY;
-            dragdrop.dragStart(event, ele, function(distance) {
-                handleEvent.distance = distance;
-            });
+            handleEvent.offsetX = event.offsetX || 0;
+            handleEvent.offsetY = event.offsetY || 0;
         },
         mouseMove: function(event) {
+            if (handleEvent.dragStart && handleEvent.isDrag(event)) {
+                handleEvent.dragStart = false;
+                document.body.classList.add(DK_USER_SELECT);
+                // 是否点击了拖拽节点
+                var ele = view.searchUp(event.target, DK_ITEM);
+                if (!ele) return;
+                handleEvent.ele = ele;
+                dragdrop.dragStart(event, handleEvent.offsetX, handleEvent.offsetY, handleEvent.ele);
+                return;
+            }
             dragdrop.drag(event);
         },
         mouseUp: function(event) {
+            document.body.classList.remove(DK_USER_SELECT);
             dragdrop.dragEnd(event);
+            // 清理临时变量
+            delete handleEvent.ele;
+            delete handleEvent.distance;
+            delete handleEvent.distanceX;
+            delete handleEvent.distanceY;
+            delete handleEvent.offsetX;
+            delete handleEvent.offsetY;
         },
         click: function(event) {
-            // 点击删除图标
-            if (event.target.classList.contains(DK_DELETE_ITEM_ICO)) {
-                var dragkit = utils.getDom2Dragkit(event.target),
-                    nodeId = event.target.getAttribute(DK_ID);
-                if (!dragkit) return;
-                dragkit.remove({
-                    id: nodeId
-                });
-                dragkit.layout();
-            } else {
-                var distanceX = Math.abs(event.pageX - handleEvent.distanceX || 0),
-                    distanceY = Math.abs(event.pageY - handleEvent.distanceY || 0);
-                if (handleEvent.distance <= distanceX || handleEvent.distance <= distanceY) {
-                    event.stopPropagation(); // event.preventDefault();
-                    // 清理临时变量
-                    delete handleEvent.distance;
-                    delete handleEvent.distanceX;
-                    delete handleEvent.distanceY;
-
-                }
+            if (!handleEvent.dragStart && handleEvent.dragStart !== undefined) {
+                // event.preventDefault();
+                event.stopPropagation();
+                delete handleEvent.dragStart
+            }
+        },
+        isDrag: function(event) {
+            var distanceX = Math.abs(event.pageX - handleEvent.distanceX || 0),
+                distanceY = Math.abs(event.pageY - handleEvent.distanceY || 0);
+            if (handleEvent.distance < distanceX || handleEvent.distance < distanceY) {
+                return true;
             }
         }
     };
 
 
-    // 拖拽对象 
+    // 拖拽对象
     // 拖拽的工具对象
     var dragdrop = {
         state: {},
         init: function() {
             this.dragNode = null;
-            this.dragElement = view.create({}, {}, DK_HIDE_ITEM);
+            this.dragElement = view.create();
             document.body.appendChild(this.dragElement);
         },
         // 开始拖拽
-        dragStart: function(event, ele, ck) {
+        dragStart: function(event, offsetX, offsetY, ele) {
             this.isDrag = true;
             // @fix 需支持子节点情况, 鼠标悬停位置与当前拖拽节点坐标的偏移
-            this.offsetX = event.offsetX || 0;
-            this.offsetY = event.offsetY || 0;
+            var targetOffset = view.getOffset(event.target);
+            var eleOffset = view.getOffset(ele);
+            this.offsetX = targetOffset.left - eleOffset.left + offsetX || 0;
+            this.offsetY = targetOffset.top - eleOffset.top + offsetY || 0;
+            // 缓存被点击的节点
+            this.ele = ele;
             // 容器外点击待新增节点
             if (ele.classList.contains(DK_ADD_ITEM)) {
                 this.state.isDragAddNode = true; // 状态 新增节点
-                this.state.inside = false; // 状态 容器外
+                this.state.inside = false; 		 // 状态 容器外
                 this.copyDragElement(ele);
             }
             // 容器内点击节点
@@ -469,7 +476,6 @@
                 dragkit.container.classList.add(DK_START_CONTAINER);
                 this.startDragkit = this.dragkit = dragkit;
                 this.copyDragElement(ele);
-                ck && ck(dragkit.opt.distance);
             }
             // 移动复制节点
             this.moveDragElement(event);
@@ -484,15 +490,11 @@
                 className = DK_ITEM + ' ' + DK_GRAG_DROP_ITEM;
                 var id = ele.getAttribute(DK_ID);
                 // 被选中的节点
-                this.dragkit.elements[id].classList.add(DK_PLACEHOLDER_ITEM);
+                ele.classList.add(DK_PLACEHOLDER_ITEM);
                 // 复制节点数据
                 this.dragNode = utils.clone(this.dragkit.query(id));
             }
-            var opt = this.dragkit ? this.dragkit.opt : {
-                showFieldName: setting.showFieldName
-            };
-            view.update(this.dragNode, this.dragElement, opt, className);
-            view.show(this.dragElement);
+            view.show(this.dragElement, this.dragNode, ele, className);
         },
         // 移动拖拽节点
         moveDragElement: function(event) {
@@ -624,11 +626,14 @@
                 }
                 // 清除占位符
                 var id = this.dragNode && this.dragNode.id,
-                    ele = id && this.dragkit.elements[id];
+                    ele = id && this.dragkit && this.dragkit.elements[id];
                 ele && ele.classList.remove(DK_PLACEHOLDER_ITEM);
                 // 覆盖节点
                 if (this.state.isDragCoverNode) {
-                    this.dragCoveredNode && this.dragkit.cover(this.dragCoveredNode, this.dragNode);
+                    if (this.dragCoveredNode) {
+                        this.dragkit.cover(this.dragCoveredNode, this.dragNode, this.dragElement);
+                        this.dragkit.layout();
+                    }
                     delete this.dragCoveredNode;
                 }
                 // 跨容器移动节点
@@ -640,12 +645,17 @@
                 // 隐藏拖拽节点
                 view.hide(this.dragElement);
                 // 回调函数
-                this.dragkit && this.dragkit.opt.onLoad && this.dragkit.opt.onLoad(this.dragkit)
+                // this.dragkit && this.dragkit.opt.onLoad &&
+                // this.dragkit.opt.onLoad(this.startDragkit, this.dragkit, ele);
+                console.log(this.dragNode);
+                this.dragkit && this.dragkit.opt.onLoad &&
+                this.dragkit.opt.onLoad(this.dragElement);
             }
             // 清理临时样式
             this.startDragkit && this.startDragkit.container.classList.remove(DK_START_CONTAINER);
             // 清理临时变量
             this.state = {};
+            delete this.ele;
             delete this.isDrag;
             delete this.dragkit;
             delete this.startDragkit;
@@ -657,7 +667,7 @@
         }
     };
 
-    // api接口 
+    // api接口
     // 拖拽对象
     function DragKit(options, container, originData, number) {
         this.init(options, container, originData, number);
@@ -671,20 +681,24 @@
             this.autoIncrement = 0; // 节点的自增主键
             this.opt = utils.extend(setting, options); // 配置项
             this.container = container; // 容器DOM
-            if (originData) {
-                this.originData = originData; // 原始数据
-                this.data = this.setData(originData); // 渲染数据
-                this.elements = view.init(this.data, this.opt, this.container); // 缓存的节点DOM
-            } else {
+
+            if (!originData) {
                 var arr = view.dom2obj(container, this);
                 if (arr && arr.length > 0) {
                     this.data = this.setData(arr);
                     view.render(this.opt, this.data, this.elements, this.container);
+                    // 回调函数
+                    this.opt.onInit && this.opt.onInit(this, this.data);
                 }
             }
         },
         destroy: function() {
-            // 注销
+            delete this.number;
+            delete this.autoIncrement;
+            delete this.opt;
+            delete this.data;
+            delete this.elements;
+            delete this.container;
         },
         setData: function(originData) {
             var data = [],
@@ -692,10 +706,9 @@
                 self = this;
             originData.forEach(function(node, idx) {
                 data[idx] = {
-                    id: self.number + '-' + (++self.autoIncrement),
+                    id: node.id || (self.number + '-' + (++self.autoIncrement)),
                     innerY: idx * (opt.nodeH + opt.padding)
                 };
-                data[idx][opt.showFieldName] = node[opt.showFieldName];
             });
             return data;
         },
@@ -707,7 +720,6 @@
             return this.data;
         },
         layout: function(dragNode, innerY) {
-            // @fix 只有真正坐标发生改变才会触发render 节流
             var node = (dragNode && this.query(dragNode.id));
             node && (node.innerY = innerY);
             // 排序
@@ -716,8 +728,10 @@
             });
             // 重置
             this.resetData();
-            // 重绘
+            // // 重绘
             view.render(this.opt, this.data, this.elements, this.container);
+            // 回调函数
+            this.opt.onLayout && this.opt.onLayout(this, this.data);
         },
         query: function(id) {
             if (!id) return undefined;
@@ -725,36 +739,47 @@
                 return node.id === id
             })[0];
         },
-        add: function(node) {
-            var opt = this.opt;
+        add: function(node, element) {
+            var opt = this.opt; // this._addId =
             node.id = node.id || this.number + '-' + (++this.autoIncrement);
             node.innerY = node.innerY !== undefined ? node.innerY : this.data.length * (opt.nodeH + opt.padding);
             this.data.push(node);
-            var ele = view.create(node, opt);
+            var ele = view.create(node, element);
             this.elements[node.id] = ele;
             this.container.appendChild(ele);
             // 回调函数
-            this.opt.onAddNode && this.opt.onAddNode(this, node);
+            this.opt.onAddNode && this.opt.onAddNode(this, node.id);
+            return node;
+        },
+        update: function(oldId, newId) {
+            var node = this.query(oldId);
+            node.id = newId;
+            var ele = this.elements[oldId];
+            ele.setAttribute(DK_ID, newId);
+            var delIco = ele.querySelector('.'+DK_DELETE_ITEM_ICO);
+            delIco && delIco.setAttribute(DK_ID, newId || '');
+            this.elements[newId] = ele;
+            delete this.elements[oldId];
+            // 回调函数
+            this.opt.onEditNode && this.opt.onEditNode(this, newId);
             return node;
         },
         remove: function(node) {
-            var rmNode = utils.clone(node);
             if (!(node && node.id)) return;
+            var deleteId = node.id; // this._deleteId =
             this.data.forEach(function(n, idx, arr) {
                 n.id === node.id && arr.splice(idx, 1);
             });
             delete this.elements[node.id];
             view.remove(this.container, node.id);
             // 回调函数
-            this.opt.onDeleteNode && this.opt.onDeleteNode(this, rmNode);
+            this.opt.onDeleteNode && this.opt.onDeleteNode(this, deleteId);
         },
-        update: function(oldNode, newNode) {},
         // 覆盖
-        cover: function(oldNode, newNode) {
+        cover: function(oldNode, newNode, newElement) {
             newNode.innerY = oldNode.innerY; // 同步位置
             this.remove(oldNode);
-            this.add(newNode);
-            this.layout();
+            this.add(newNode, newElement);
             // 回调函数
             this.opt.onCoverNode && this.opt.onCoverNode(this);
         },
@@ -766,6 +791,7 @@
 
     // 构建实例
     function instance(options, container, originData) {
+        // debugger;
         if (container && !container.hasAttribute(DK_ID)) {
             // 初始化监听
             handleEvent.init(true, document.body);
@@ -780,14 +806,23 @@
 
     // 销毁实例
     function destroy(dragkit) {
-        delete cache[dragkit.opt.container.getAttribute(DK_ID)];
-        dragkit.destroy();
-        dragkit = null;
+        if (dragkit) {
+            dragkit.container.removeAttribute(DK_ID);
+            cache.remove(dragkit);
+            dragkit.destroy();
+            dragkit = null;
+        }
     }
 
     dk = {
-        version: "1.1.0",
+        version: "1.2.1",
         instance: instance,
+        get: function(dom) {
+            return utils.getDom2Dragkit(dom);
+        },
+        list: function() {
+            return cache.list();
+        },
         destroy: destroy
     };
 

@@ -1,8 +1,10 @@
 @charset "UTF-8";
+body.dk-user-select {
+    user-select:none !important;
+}
 .dk-container {
     position: relative;
     z-index: 1;
-    user-select:none;
     transition: height 0.15s;
     width: 100%;
     height: 100%;
@@ -19,6 +21,7 @@
     background-color: #B2CF07;
     border-radius: 15px;
     color: #fff;
+    user-select:none;
 }
 .dk-show-item {
     display: block;

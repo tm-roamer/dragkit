@@ -1,6 +1,7 @@
 
 // 常量
 var THROTTLE_TIME = 14,                              // 节流函数的间隔时间单位ms, FPS = 1000 / THROTTLE_TIME
+    DK_USER_SELECT = "dk-user-select",               // 拖拽进行中, 在body标签动态绑定, 防止文本选中
     DK_CONTAINER = 'dk-container',                   // 拖拽容器classname
     DK_START_CONTAINER = 'dk-start-container',       // 跨容器拖拽时开始容器的classname
     DK_ID = 'data-dk-id',                            // 拖拽节点的数据标识id
@@ -34,9 +35,11 @@ var f = function () {
         isShowPromptText: false,                         // 是否显示提示文字, 默认不显示
         padding: 5,                                      // 节点块之间的间距, 默认都为5px
         distance: 5,                                     // 触发拖拽的拖拽距离,默认5px
-        // editNode: f,                                     // 回调函数, 更新节点
+        onEditNode: f,                                   // 回调函数, 更新节点
         onCoverNode: f,                                  // 回调函数, 覆盖节点
         onAddNode: f,                                    // 回调函数, 添加节点
         onDeleteNode: f,                                 // 回调函数, 删除节点
-        onLoad: f                                        // 回调函数, 渲染触发
+        onInit: f,			                             // 回调函数, 初始化的回调
+        onLoad: f, 		 	                             // 回调函数, mouseup触发
+        onLayout: f		 	                             // 回调函数, 重新布局触发
     };

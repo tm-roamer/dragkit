@@ -12,7 +12,15 @@ var cache = {
         this.arr.push(obj);
         return obj;
     },
+    remove: function(dk) {
+        this.arr.forEach(function(obj, i, arr) {
+            dk === obj && arr.splice(i, 1);
+        });
+    },
     index: function () {
         return this.arr.length + 1;
+    },
+    list: function() {
+        return this.arr;
     }
 };

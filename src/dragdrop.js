@@ -8,11 +8,15 @@ var dragdrop = {
         document.body.appendChild(this.dragElement);
     },
     // 开始拖拽
-    dragStart: function (event, ele, ck) {
+    dragStart: function (event, offsetX, offsetY, ele) {
         this.isDrag = true;
         // @fix 需支持子节点情况, 鼠标悬停位置与当前拖拽节点坐标的偏移
-        this.offsetX = event.offsetX || 0;
-        this.offsetY = event.offsetY || 0;
+        var targetOffset = view.getOffset(event.target);
+        var eleOffset = view.getOffset(ele);
+        this.offsetX = targetOffset.left - eleOffset.left + offsetX || 0;
+        this.offsetY = targetOffset.top - eleOffset.top + offsetY || 0;
+        // 缓存被点击的节点
+        this.ele = ele;
         // 容器外点击待新增节点
         if (ele.classList.contains(DK_ADD_ITEM)) {
             this.state.isDragAddNode = true;    // 状态 新增节点
@@ -27,7 +31,6 @@ var dragdrop = {
             dragkit.container.classList.add(DK_START_CONTAINER);
             this.startDragkit = this.dragkit = dragkit;
             this.copyDragElement(ele);
-            ck && ck(dragkit.opt.distance);
         }
         // 移动复制节点
         this.moveDragElement(event);
@@ -180,7 +183,7 @@ var dragdrop = {
             }
             // 清除占位符
             var id = this.dragNode && this.dragNode.id,
-                ele = id && this.dragkit.elements[id];
+                ele = id && this.dragkit && this.dragkit.elements[id];
             ele && ele.classList.remove(DK_PLACEHOLDER_ITEM);
             // 覆盖节点
             if (this.state.isDragCoverNode) {
@@ -202,6 +205,7 @@ var dragdrop = {
         this.startDragkit && this.startDragkit.container.classList.remove(DK_START_CONTAINER);
         // 清理临时变量
         this.state = {};
+        delete this.ele;
         delete this.isDrag;
         delete this.dragkit;
         delete this.startDragkit;
